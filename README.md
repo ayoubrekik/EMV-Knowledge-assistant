@@ -1,11 +1,10 @@
-# 📘 AI-Powered Knowledge Assistant (EMV)
+# AI-Powered Knowledge Assistant (EMV)
 **Field:** E‑Payment Systems (EMV Specifications)  
 
 An AI-powered **Retrieval-Augmented Generation (RAG)** assistant that centralizes technical knowledge for project teams by aggregating content from **specification documents** (PDF/Word) into a **vector database** for semantic search and high-quality Q&A with **source citations**.
 
----
 
-## ✨ Key Features
+## Key Features
 - **Automated knowledge ingestion** from:
   - Specification documents (PDF/Word technical specs)
 - **Cleaning + chunking** to improve retrieval accuracy
@@ -13,9 +12,8 @@ An AI-powered **Retrieval-Augmented Generation (RAG)** assistant that centralize
 - **Vector database storage** with metadata (source type, URL, date, section/page)
 - **Natural language Q&A** with grounded answers + citations (links to sources)
 
----
 
-## 🏗 Architecture Overview
+## Architecture Overview
 The solution is structured into 5 layers:
 
 1. **Data Sources** (Spec Docs)  
@@ -33,9 +31,8 @@ Vector DB → Top‑K chunks
 RAG Engine → LLM (question + chunks)
 LLM → Answer + citations
 ```
----
 
-## 🧰 Tech Stack
+## Tech Stack
 - **Python** (core development)
 - **FastAPI + Uvicorn** (API service)
 - **ChromaDB** (vector database; persisted via volume)
@@ -43,10 +40,9 @@ LLM → Answer + citations
 - **Ollama** (local LLM runtime)
 - **Docker + Docker Compose** (reproducible local environment)
 
----
 
-## 🚀 Quickstart
-## 🐳 Install Docker Desktop
+## Quickstart
+### Install Docker Desktop
 
 Before cloning the repository, download and install **Docker Desktop**:
 
@@ -54,7 +50,6 @@ Before cloning the repository, download and install **Docker Desktop**:
 
 Make sure Docker is running before proceeding.
 
----
 
 ### 1) Clone the repository
 ```bash
@@ -77,15 +72,12 @@ docker compose up --build
   `http://localhost:8000`
 
 
----
 
 ## 🔒 Data Privacy
 - Runs **fully locally** (Docker)
 - EMV specs remain on your machine
 - No external cloud API required
 
----
 
 ## 🙋 Author
 Internship / project work on an AI Knowledge Assistant for EMV E‑Payment Systems.
-# EMV-Knowledge-assistant
