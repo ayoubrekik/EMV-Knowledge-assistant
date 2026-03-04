@@ -1,41 +1,83 @@
 version: "3.9"
 
+# services:
+#   ai-agent:
+#     build: .
+#     container_name: ai_agent
+#     volumes:
+#       - .:/app
+#       - ./data:/app/data
+#       - ./models/huggingface:/root/.cache/huggingface
+#       - ./models/torch:/root/.cache/torch
+#       - ./models/ollama:/root/.ollama
+#     ports:
+#       - "8888:8888"
+#     tty: true
+#     stdin_open: true
+#     command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+
 services:
-  ai-agent:
+  api:
     build: .
-    container_name: ai_agent
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
     volumes:
-      - .:/app
-      - ./data:/app/data
-      - ./models/huggingface:/root/.cache/huggingface
-      - ./models/torch:/root/.cache/torch
-      - ./models/ollama:/root/.ollama
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./tests:/app/tests
+      - ./static:/app/static
+      - ./templates:/app/templates
+    environment:
+      # If app needs to know where Chroma is:
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8000
+      # If app talks to Ollama:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - chroma
+      - ollama
+
+  # EDA + testing (Jupyter)
+  notebook:
+    build: .
+    command: >
+      jupyter notebook
+      --ip=0.0.0.0
+      --port=8888
+      --no-browser
+      --allow-root
+      --notebook-dir=/app/src/core/notebooks
+      --NotebookApp.token=''
+      --NotebookApp.password=''
     ports:
       - "8888:8888"
-    tty: true
-    stdin_open: true
-    command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
-# services:
+    volumes:
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./tests:/app/tests
+      - ./static:/app/static
+      - ./templates:/app/templates
+    depends_on:
+      - chroma
 
-#   api:
-#     build: .
-#     command: uvicorn api.main:app --host 0.0.0.0 --port 8000
-#     depends_on:
-#       - chroma
-#       - ollama
+  chroma:
+    image: chromadb/chroma:latest
+    ports:
+      - "8001:8000"   # host:container (avoids clashing with API 8000)
+    volumes:
+      - ./src/storage/chroma:/chroma
+    restart: unless-stopped
 
-#   chroma:
-#     image: chromadb/chroma
-#     volumes:
-#       - ./vector_store:/chroma
-
-#   ollama:
-#     image: ollama/ollama
-#     volumes:
-#       - ./models/ollama:/root/.ollama
-
-#   ingestion:
-#     build: .
-#     command: python ingestion/run_indexing.py
-#     depends_on:
-#       - chroma
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./src/storage/models/ollama:/root/.ollama
+    restart: unless-stopped
+  # ingestion:
+  #   build: .
+  #   command: python ingestion/run_indexing.py
+  #   depends_on:
+  #     - chroma

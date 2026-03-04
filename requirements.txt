@@ -20,6 +20,7 @@ torch==2.2.2
 
 # Vector Database
 chromadb==0.5.3
+requests
 
 # LangChain ecosystem
 langchain==0.2.6
