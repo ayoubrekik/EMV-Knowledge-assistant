@@ -56,3 +56,5 @@ htmlcov/
 
 # Docker
 docker-compose.override.yml
+# File contains Copy
+*Copy*
