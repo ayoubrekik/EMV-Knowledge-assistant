@@ -58,3 +58,4 @@ htmlcov/
 docker-compose.override.yml
 # File contains Copy
 *Copy*
+*Copy*.ipynb
