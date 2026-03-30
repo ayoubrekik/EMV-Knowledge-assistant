@@ -60,6 +60,8 @@ services:
       - ./templates:/app/templates
     depends_on:
       - chroma
+      - ollama
+
 
   chroma:
     image: chromadb/chroma:latest
