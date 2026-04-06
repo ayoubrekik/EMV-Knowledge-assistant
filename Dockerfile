@@ -12,6 +12,11 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    libgl1 \
+    libxcb1 \
+    libx11-6 \
+    libglib2.0-0t64 \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency file
