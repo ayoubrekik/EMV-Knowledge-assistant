@@ -17,6 +17,7 @@ version: "3.9"
 #     command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 
 services:
+
   api:
     build: .
     command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
@@ -24,20 +25,17 @@ services:
       - "8000:8000"
     volumes:
       - ./src:/app/src
+      - ./src/storage/models:/root/.cache/huggingface
       - ./scripts:/app/scripts
-      - ./tests:/app/tests
-      - ./static:/app/static
-      - ./templates:/app/templates
+
+
+    env_file:
+      - .env
     environment:
-      # If app needs to know where Chroma is:
-      - CHROMA_HOST=chroma
-      - CHROMA_PORT=8000
-      # If app talks to Ollama:
-      - OLLAMA_HOST=http://ollama:11434
+      - PYTHONPATH=/app
     depends_on:
       - chroma
       - ollama
-
   # EDA + testing (Jupyter)
   notebook:
     build: .
@@ -54,10 +52,13 @@ services:
       - "8888:8888"
     volumes:
       - ./src:/app/src
+      - ./src/storage/models:/root/.cache/huggingface
       - ./scripts:/app/scripts
       - ./tests:/app/tests
       - ./static:/app/static
       - ./templates:/app/templates
+    env_file:
+      - .env
     depends_on:
       - chroma
       - ollama
@@ -66,9 +67,9 @@ services:
   chroma:
     image: chromadb/chroma:latest
     ports:
-      - "8001:8000"   # host:container (avoids clashing with API 8000)
+      - "8001:8000"
     volumes:
-      - ./src/storage/chroma:/chroma
+      - ./src/storage/chroma:/data
     restart: unless-stopped
 
   ollama:
