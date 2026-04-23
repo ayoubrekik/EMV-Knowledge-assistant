@@ -20,7 +20,9 @@ torch>=2.2.0
 
 # Vector Database
 # 0.5.3 pins pydantic v1 which conflicts with Docling's pydantic v2
-chromadb>=0.5.23
+#chromadb>=0.5.23
+#chromadb==0.4.24
+chromadb-client
 
 requests
 
