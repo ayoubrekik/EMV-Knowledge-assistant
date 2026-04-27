@@ -27,6 +27,9 @@ services:
       - ./src:/app/src
       - ./src/storage/models:/root/.cache/huggingface
       - ./scripts:/app/scripts
+      - ./templates:/app/templates
+      - ./tests:/app/tests
+      - ./static:/app/static
 
 
     env_file:
@@ -57,6 +60,7 @@ services:
       - ./tests:/app/tests
       - ./static:/app/static
       - ./templates:/app/templates
+  
     env_file:
       - .env
     depends_on:
@@ -71,14 +75,28 @@ services:
     volumes:
       - ./src/storage/chroma:/data
     restart: unless-stopped
-
   ollama:
     image: ollama/ollama:latest
+    container_name: ollama
     ports:
       - "11434:11434"
     volumes:
       - ./src/storage/models/ollama:/root/.ollama
     restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ./src/storage/models/ollama:/root/.ollama
+  #   restart: unless-stopped
   # ingestion:
   #   build: .
   #   command: python ingestion/run_indexing.py
