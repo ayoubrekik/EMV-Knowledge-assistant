@@ -16,3 +16,6 @@ staticfiles/
 .DS_Store
 Thumbs.db
 .git/
+src/storage/models/
+src/storage/chroma/
+src/date/
