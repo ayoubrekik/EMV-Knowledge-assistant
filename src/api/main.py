@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.responses import HTMLResponse,StreamingResponse
 from fastapi.templating import Jinja2Templates
 import os
@@ -8,9 +8,16 @@ from pydantic import BaseModel
 
 from src.core.rag.conversational_rag_service import stream_conversational_rag
 from src.core.db.chroma_client import get_chroma_client,get_or_create_emv_collection
+from src.api.routes.test_db import router as test_db_router
+from src.api.routes.auth import router as auth_router
+
+from src.core.auth import get_current_user
+from src.core.db.models import User
+from src.core.auth import require_admin
 
 app = FastAPI(title="RAG API")
-
+app.include_router(auth_router)
+app.include_router(test_db_router)
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 
@@ -23,11 +30,12 @@ class ChatRequest(BaseModel):
 #     print(f"DEBUG: Current file path: {current_file}")
 #     return {"status": "ok", "message": "FastAPI is running"}
 @app.get("/", response_class=HTMLResponse)
+
 def home(request: Request):
     current_file = Path(__file__).resolve()
     template_dir = current_file.parent.parent / "templates"
     templates = Jinja2Templates(directory=str(template_dir))
-    return templates.TemplateResponse(request, "chat.html", {"request": request})
+    return templates.TemplateResponse(request, "login.html", {"request": request})
 
 @app.get("/health")
 def health():
@@ -39,18 +47,49 @@ def startup_event():
     print(f"Chroma collection ready: {collection.name} and {collection.metadata}")
 
 
+@app.get("/login", response_class=HTMLResponse)
+def login_page(request: Request):
+    current_file = Path(__file__).resolve()
+    template_dir = current_file.parent.parent / "templates"
+    templates = Jinja2Templates(directory=str(template_dir))
+
+    return templates.TemplateResponse(
+        request,
+        "login.html",
+        {"request": request}
+    )
+@app.get("/user", response_class=HTMLResponse)
+def user_chat(request: Request):
+    current_file = Path(__file__).resolve()
+    template_dir = current_file.parent.parent / "templates"
+    templates = Jinja2Templates(directory=str(template_dir))
+
+    return templates.TemplateResponse(
+        request,
+        "user_chat.html",
+        {"request": request}
+    )
+@app.get("/admin", response_class=HTMLResponse)
+def admin_chat(request: Request):
+    current_file = Path(__file__).resolve()
+    template_dir = current_file.parent.parent / "templates"
+    templates = Jinja2Templates(directory=str(template_dir))
+
+    return templates.TemplateResponse(
+        request,
+        "admin_chat.html",
+        {"request": request}
+    )
 @app.post("/chat/stream")
-def chat_stream(req: ChatRequest):
-    def event_generator():
-        for token in stream_conversational_rag(
+def chat_stream(
+    req: ChatRequest,
+    current_user: User = Depends(get_current_user),
+):
+    return StreamingResponse(
+        stream_conversational_rag(
             question=req.question,
             session_id=req.session_id,
-        ):
-            yield f"data: {token}\n\n"
-
-        yield "data: [DONE]\n\n"
-
-    return StreamingResponse(
-        event_generator(),
+            user_id=str(current_user.id),
+        ),
         media_type="text/event-stream",
     )

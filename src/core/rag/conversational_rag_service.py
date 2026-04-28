@@ -1,6 +1,6 @@
 import time
 from typing import Dict, List, Literal
-
+import json
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -172,8 +172,6 @@ Rules:
 3. If the answer is not clearly present in the context, say exactly:
    "I could not find this in the retrieved EMV sources."
 4. Keep the answer technical, clear, and concise.
-5. List sources after the answer in this format:
-Book | full Section path | Section Title | page number.
 
 Context:
 {context}
@@ -512,43 +510,184 @@ def clear_conversation(session_id: str = "default"):
     chat_histories[session_id] = []
 
 
-def stream_conversational_rag(question: str, session_id: str = "default", k: int = 3):
+# def stream_conversational_rag(question: str, session_id: str = "default", k: int = 3):
+#     vectorstore = get_langchain_chroma()
+#     llm = get_llm()
+#     history = get_history(session_id)
+
+#     input_type = classify_input(llm, question, history)
+
+#     if (
+#         input_type in {
+#             "greeting",
+#             "gratitude",
+#             "small_talk",
+#             "out_of_scope_question",
+#             "project_question",
+#             "frontend_command",
+#             "empty_input",
+#             "noise",
+#         }
+#     ):
+#         answer = build_non_rag_answer(input_type)
+
+#         if should_store_non_rag_message(input_type):
+#             history.append(HumanMessage(content=question))
+#             history.append(AIMessage(content=answer))
+
+#         yield answer
+#         return
+
+#     if input_type == "contextual_follow_up":
+#         standalone_question = rewrite_question(llm, question, history)
+#     else:
+#         standalone_question = question
+
+#     scored_docs = vectorstore.similarity_search_with_score(
+#         standalone_question,
+#         k=k,
+#     )
+
+#     context = format_context(scored_docs)
+
+#     prompt = ChatPromptTemplate.from_template(RAG_PROMPT)
+
+#     messages = prompt.invoke({
+#         "context": context,
+#         "question": standalone_question,
+#     })
+
+#     full_answer = ""
+
+#     for chunk in llm.stream(messages):
+#         token = chunk.content or ""
+#         full_answer += token
+#         yield token
+
+#     history.append(HumanMessage(content=question))
+#     history.append(AIMessage(content=full_answer))
+
+
+
+
+
+def build_sources_and_chunks(scored_docs):
+    sources = []
+    retrieved_chunks = []
+    seen = set()
+
+    for rank, (doc, distance) in enumerate(scored_docs, start=1):
+        metadata = doc.metadata
+
+        source = {
+            "doc_id": metadata.get("doc_id", "Unknown document"),
+            "section_number": metadata.get("section_number", "Unknown section"),
+            "title": metadata.get("title", "Unknown title"),
+            "page": metadata.get("page_num", "Unknown page"),
+        }
+
+        source_key = (
+            source["doc_id"],
+            source["section_number"],
+            source["title"],
+            source["page"],
+        )
+
+        if source_key not in seen:
+            sources.append(source)
+            seen.add(source_key)
+
+        retrieved_chunks.append({
+            "rank": rank,
+            "distance": distance,
+            "text_preview": doc.page_content[:500],
+            "metadata": metadata,
+        })
+
+    return sources, retrieved_chunks
+
+
+def sse_event(event_type: str, data):
+    return f"event: {event_type}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+def stream_conversational_rag( question: str, session_id: str = "default", user_id: str | None = None, k: int = 3, ):
+    total_start = time.perf_counter()
+
     vectorstore = get_langchain_chroma()
     llm = get_llm()
     history = get_history(session_id)
 
+    router_start = time.perf_counter()
     input_type = classify_input(llm, question, history)
+    router_end = time.perf_counter()
 
-    if (
-        input_type in {
-            "greeting",
-            "gratitude",
-            "small_talk",
-            "out_of_scope_question",
-            "project_question",
-            "frontend_command",
-            "empty_input",
-            "noise",
-        }
-    ):
+    non_rag_types = {
+        "greeting",
+        "gratitude",
+        "small_talk",
+        "out_of_scope_question",
+        "project_question",
+        "frontend_command",
+        "empty_input",
+        "noise",
+    }
+
+    if input_type in non_rag_types:
         answer = build_non_rag_answer(input_type)
 
         if should_store_non_rag_message(input_type):
             history.append(HumanMessage(content=question))
             history.append(AIMessage(content=answer))
 
-        yield answer
+        total_end = time.perf_counter()
+
+        yield sse_event("token", answer)
+
+        metadata = {
+            "session_id": session_id,
+            "user_id": user_id,
+            "input_type": input_type,
+            "original_question": question,
+            "standalone_question": None,
+            "answer": answer,
+            "sources": [],
+            "retrieved_chunks": [],
+            "metrics": {
+                "history_messages_count": len(history),
+                "retrieved_chunks_count": 0,
+                "best_distance": None,
+                "worst_distance": None,
+                "average_distance": None,
+                "router_time_seconds": router_end - router_start,
+                "rewrite_time_seconds": 0,
+                "retrieval_time_seconds": 0,
+                "generation_time_seconds": 0,
+                "total_time_seconds": total_end - total_start,
+            },
+        }
+
+        yield sse_event("metadata", metadata)
+        yield sse_event("done", "[DONE]")
         return
+
+    rewrite_start = time.perf_counter()
 
     if input_type == "contextual_follow_up":
         standalone_question = rewrite_question(llm, question, history)
     else:
         standalone_question = question
 
+    rewrite_end = time.perf_counter()
+
+    retrieval_start = time.perf_counter()
+
     scored_docs = vectorstore.similarity_search_with_score(
         standalone_question,
         k=k,
     )
+
+    retrieval_end = time.perf_counter()
 
     context = format_context(scored_docs)
 
@@ -559,12 +698,49 @@ def stream_conversational_rag(question: str, session_id: str = "default", k: int
         "question": standalone_question,
     })
 
+    generation_start = time.perf_counter()
+
     full_answer = ""
 
     for chunk in llm.stream(messages):
         token = chunk.content or ""
         full_answer += token
-        yield token
+
+        yield sse_event("token", token)
+
+    generation_end = time.perf_counter()
 
     history.append(HumanMessage(content=question))
     history.append(AIMessage(content=full_answer))
+
+    sources, retrieved_chunks = build_sources_and_chunks(scored_docs)
+
+    distances = [distance for _, distance in scored_docs]
+
+    total_end = time.perf_counter()
+
+    metadata = {
+        "session_id": session_id,
+        "user_id": user_id,
+        "input_type": input_type,
+        "original_question": question,
+        "standalone_question": standalone_question,
+        "answer": full_answer,
+        "sources": sources,
+        "retrieved_chunks": retrieved_chunks,
+        "metrics": {
+            "history_messages_count": len(history),
+            "retrieved_chunks_count": len(scored_docs),
+            "best_distance": min(distances) if distances else None,
+            "worst_distance": max(distances) if distances else None,
+            "average_distance": sum(distances) / len(distances) if distances else None,
+            "router_time_seconds": router_end - router_start,
+            "rewrite_time_seconds": rewrite_end - rewrite_start,
+            "retrieval_time_seconds": retrieval_end - retrieval_start,
+            "generation_time_seconds": generation_end - generation_start,
+            "total_time_seconds": total_end - total_start,
+        },
+    }
+
+    yield sse_event("metadata", metadata)
+    yield sse_event("done", "[DONE]")
