@@ -50,3 +50,13 @@ ipykernel==6.29.4
 
 # Docling
 docling
+
+#postgres
+postgresql-client
+sqlalchemy>=2.0
+psycopg2-binary
+
+#Login
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
