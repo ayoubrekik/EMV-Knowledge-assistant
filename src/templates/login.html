@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<script>
+  const token = sessionStorage.getItem("access_token");
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+    console.log(user)
+  if (token) {
+    if (user.role == "user") {
+    window.location.replace("/user");
+  }else if (user.role == "admin")
+{    window.location.replace("/admin");
+}
+}
+
+</script>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | EMV AI Assistant</title>
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', path='img/icon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/login.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+</head>
+
+<body>
+    <main class="login-page">
+        <section class="login-left">
+<div class="brand" style="display: flex; align-items: center; width: 100%;">
+    <img src="{{ url_for('static', path='img/icon.png') }}" alt="EMV AI Logo">
+    <div style="margin-left: 10px;">
+        <h1 style="margin: 0;">EMV AI</h1>
+        <p style="margin: 0;">Knowledge Assistant</p>
+    </div>
+
+<div style="margin-left: auto; display: flex; align-items: center;">
+    <img src="{{ url_for('static', path='img/Logo_Telnet.png') }}" 
+         alt="Telnet Logo" 
+         style="height: 90px; width: auto;"> 
+</div>
+</div>
+            
+
+            <div class="hero-content">
+                <span class="badge">AI-Powered Retrieval System</span>
+                <h2>Access your technical knowledge base.</h2>
+                <p>
+                    Ask questions about EMV specifications and receive accurate answers with citations,
+                    metadata, and source references.
+                </p>
+            </div>
+        </section>
+
+        <section class="login-right">
+            <form class="login-card" id="loginForm">
+                <div class="form-header">
+                    <h2>Welcome back</h2>
+                    <p>Login to continue to your assistant</p>
+                </div>
+
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <label>
+                        <input type="checkbox" name="remember">
+                        Remember me
+                    </label>
+                    <a href="#">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    Login
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+
+                <p class="register-text">
+                    Don’t have an account?
+                    <a href="/register">Create account</a>
+                </p>
+            </form>
+        </section>
+    </main>
+    <script>
+        const loginForm = document.getElementById("loginForm");
+
+        loginForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            const formData = new URLSearchParams();
+            formData.append("username", username);
+            formData.append("password", password);
+
+            try {
+                const response = await fetch("/auth/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: formData,
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert(data.detail || "Login failed");
+                    return;
+                }
+
+                sessionStorage.setItem("access_token", data.access_token);
+                sessionStorage.setItem("user", JSON.stringify(data.user));
+
+                if (data.user.role === "admin") {
+                    window.location.href = "/admin";
+                } else if (data.user.role === "user"){
+                    window.location.href = "/user";
+                } else{
+                    window.location.href = "/";
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert("Something went wrong");
+            }
+        });
+    </script>
+</body>
+
+</html>

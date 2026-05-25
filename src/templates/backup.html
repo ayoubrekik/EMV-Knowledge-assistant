@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EMV AI Assistant</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', path='img/icon.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+</head>
+
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="{{ url_for('static', path='img/icon.png') }}" alt="EMV AI logo" class="brand-logo">
+        <div>
+          <h1>EMV AI</h1>
+          <p>Knowledge Assistant</p>
+        </div>
+      </div>
+
+      <div class="new-chat-row">
+        <button class="new-chat-btn" type="button" onclick="newChat()">＋ New chat</button>
+        <button class="search-btn" type="button">⌕</button>
+      </div>
+
+      <div class="sidebar-title-row">
+        <span>Your conversations</span>
+        <button class="clear-btn" type="button">Clear All</button>
+      </div>
+
+      <div class="conversation-list" id="conversationList">
+
+      </div>
+
+      <div class="sidebar-bottom">
+        <button class="bottom-btn" type="button">⚙ Settings</button>
+        <div class="profile-card">
+          <div class="profile-avatar">U</div>
+          <span>AI Agent User</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="chat-header">
+        <div class="chat-title">
+          <div class="mini-avatar">AI</div>
+          <div>
+            <strong>AI-Powered Knowledge Assistant</strong>
+            <span>Ask questions about your EMV specification knowledge base</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="chat-area" id="chatScroll">
+        <div class="message-row">
+          <div class="avatar ai">AI</div>
+          <div class="message assistant">
+            Hello, ask me anything about your EMV specification knowledge base.
+          </div>
+        </div>
+      </div>
+
+      <div class="composer-wrap">
+        <div class="composer">
+          <div class="composer-icon">+</div>
+          <textarea id="promptInput" placeholder="Ask your EMV assistant..." rows="1"></textarea>
+          <button class="send-btn" type="button" onclick="sendMessage()">➤</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+  <script>
+    const promptInput = document.getElementById("promptInput");
+    const chatScroll = document.getElementById("chatScroll");
+
+    let sessionId = crypto.randomUUID();
+    let currentChatHasTitle = false;
+
+    function fillPrompt(text) {
+      promptInput.value = text;
+      promptInput.focus();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function addChatToHistory(question) {
+      const conversationList = document.getElementById("conversationList");
+
+      document.querySelectorAll(".conversation-item").forEach(item => {
+        item.classList.remove("active");
+      });
+
+      const item = document.createElement("button");
+      item.className = "conversation-item active";
+      item.type = "button";
+      item.dataset.sessionId = sessionId;
+
+      const title = question.length > 32 ? question.slice(0, 32) + "..." : question;
+
+      item.innerHTML = `
+    <span class="conversation-icon">☷</span>
+    <span class="conversation-text">${escapeHtml(title)}</span>
+    <span class="active-dot"></span>
+  `;
+
+      item.addEventListener("click", function () {
+        setActiveChat(this.dataset.sessionId);
+      });
+
+      conversationList.prepend(item);
+    }
+
+
+    function newChat() {
+      sessionId = crypto.randomUUID();
+      currentChatHasTitle = false;
+
+      document.querySelectorAll(".conversation-item").forEach(item => {
+        item.classList.remove("active");
+      });
+
+      chatScroll.innerHTML = `
+    <div class="message-row">
+      <div class="avatar ai">AI</div>
+      <div class="message assistant">
+        Hello, ask me anything about your EMV specification knowledge base.
+      </div>
+    </div>
+  `;
+
+      promptInput.value = "";
+      promptInput.focus();
+    }
+
+    async function sendMessage() {
+      const question = promptInput.value.trim();
+
+      if (!question) return;
+
+      if (!currentChatHasTitle) {
+        addChatToHistory(question);
+        currentChatHasTitle = true;
+      }
+
+      const userRow = document.createElement("div");
+      userRow.className = "message-row user";
+      userRow.innerHTML = `
+      <div class="message user">${escapeHtml(question)}</div>
+      <div class="avatar user">U</div>
+    `;
+      chatScroll.appendChild(userRow);
+
+      promptInput.value = "";
+
+      const aiRow = document.createElement("div");
+      aiRow.className = "message-row";
+      aiRow.innerHTML = `
+      <div class="avatar ai">AI</div>
+      <div class="message assistant" id="assistant-response"></div>
+    `;
+      chatScroll.appendChild(aiRow);
+
+      const assistantBubble = aiRow.querySelector("#assistant-response");
+      assistantBubble.textContent = "Thinking...";
+      chatScroll.scrollTop = chatScroll.scrollHeight;
+
+      try {
+        const response = await fetch("/chat/stream", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question: question,
+            session_id: sessionId,
+          }),
+        });
+
+        if (!response.ok || !response.body) {
+          assistantBubble.textContent = "Server error while generating the answer.";
+          return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+
+        let assistantMessage = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split("\n\n");
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+
+            const token = line.replace("data: ", "");
+
+            if (token === "[DONE]") return;
+
+            assistantMessage += token;
+            assistantBubble.innerHTML = formatResponse(assistantMessage);
+            chatScroll.scrollTop = chatScroll.scrollHeight;
+          }
+        }
+      } catch (error) {
+        assistantBubble.textContent = "Could not connect to the server.";
+      }
+    }
+
+    function formatResponse(text) {
+      let [mainText, sources] = text.split("Sources:");
+
+      mainText = mainText
+        .split(/(?<=\.)\s+/)
+        .map(p => `<p>${p.trim()}</p>`)
+        .join("");
+
+      let sourcesHtml = "";
+
+      if (sources) {
+        const items = sources
+          .split("-")
+          .map(s => s.trim())
+          .filter(s => s.length > 0);
+
+        sourcesHtml = `
+        <div class="sources">
+          <strong>Sources</strong>
+          <ul>
+            ${items.map(i => `<li>${escapeHtml(i)}</li>`).join("")}
+          </ul>
+        </div>
+      `;
+      }
+
+      return mainText + sourcesHtml;
+    }
+
+    promptInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+    function setActiveChat(targetSessionId) {
+      document.querySelectorAll(".conversation-item").forEach(item => {
+        item.classList.toggle("active", item.dataset.sessionId === targetSessionId);
+      });
+    }
+  </script>
+</body>
+
+</html>

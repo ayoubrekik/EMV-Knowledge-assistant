@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<script>
+  const token = sessionStorage.getItem("access_token");
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+  console.log(user)
+  if (!token) {
+    window.location.replace("/login");
+  }
+  else {
+
+    if (user.role !== "user" && user.role !== "admin") {
+      sessionStorage.removeItem("access_token");
+      sessionStorage.removeItem("user");
+      window.location.replace("/login");
+    }
+    if (user.role !== "user") {
+      window.location.replace("/admin");
+    }
+  }
+</script>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Knowledge Assistant</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', path='img/icon.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+</head>
+
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="{{ url_for('static', path='img/icon.png') }}" alt="EMV AI logo" class="brand-logo">
+        <div>
+          <h1>EMV AI</h1>
+          <p>Knowledge Assistant</p>
+        </div>
+      </div>
+
+      <div class="new-chat-row">
+        <button class="new-chat-btn" type="button" onclick="newChat()">＋ New chat</button>
+        <button class="search-btn" type="button">⌕</button>
+      </div>
+
+      <div class="sidebar-title-row">
+        <span>Conversations</span>
+      </div>
+
+      <div class="conversation-list" id="conversationList">
+
+      </div>
+
+      <div class="sidebar-bottom">
+        <button class="bottom-btn" type="button"><i class="fa-solid fa-gear"></i> Settings</button>
+        <button class="bottom-btn" type="button" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="chat-header">
+        <div class="chat-title">
+          <div class="mini-avatar">AI</div>
+          <div>
+            <strong>AI-Powered Knowledge Assistant</strong>
+            <span>Ask questions about your EMV specification knowledge base</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="chat-area" id="chatScroll">
+        <div class="message-row">
+          <div class="avatar ai">AI</div>
+          <div class="message assistant">
+            Hello, ask me anything about your EMV specification knowledge base.
+          </div>
+        </div>
+      </div>
+
+      <div class="composer-wrap">
+        <div class="composer">
+          <div class="composer-icon">+</div>
+          <textarea id="promptInput" placeholder="Ask your EMV assistant..." rows="1"></textarea>
+          <button class="send-btn" type="button" onclick="sendMessage()">➤</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+  <script>
+    const promptInput = document.getElementById("promptInput");
+    const chatScroll = document.getElementById("chatScroll");
+
+    let sessionId = crypto.randomUUID();
+    let currentChatHasTitle = false;
+
+    function fillPrompt(text) {
+      promptInput.value = text;
+      promptInput.focus();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text ?? "";
+      return div.innerHTML;
+    }
+
+    function addChatToHistory(question) {
+      const conversationList = document.getElementById("conversationList");
+
+      document.querySelectorAll(".conversation-item").forEach(item => {
+        item.classList.remove("active");
+      });
+
+      const item = document.createElement("button");
+      item.className = "conversation-item active";
+      item.type = "button";
+      item.dataset.sessionId = sessionId;
+
+      const title = question.length > 32 ? question.slice(0, 32) + "..." : question;
+
+      item.innerHTML = `
+  <span class="conversation-text">${escapeHtml(title)}</span>
+  <span class="delete-session-btn" title="Delete">
+    <i class="fa-solid fa-trash"></i>
+  </span>
+  <span class="active-dot"></span>
+`;
+
+      item.addEventListener("click", function () {
+        setActiveChat(this.dataset.sessionId);
+      });
+
+      conversationList.prepend(item);
+    }
+
+    function newChat() {
+      sessionId = crypto.randomUUID();
+      currentChatHasTitle = false;
+
+      document.querySelectorAll(".conversation-item").forEach(item => {
+        item.classList.remove("active");
+      });
+
+      chatScroll.innerHTML = `
+      <div class="message-row">
+        <div class="avatar ai">AI</div>
+        <div class="message assistant">
+          Hello, ask me anything about your EMV specification knowledge base.
+        </div>
+      </div>
+    `;
+
+      promptInput.value = "";
+      promptInput.focus();
+    }
+    async function loadSessions() {
+      const token = sessionStorage.getItem("access_token");
+      console.log("TOKEN FOR SESSIONS =", token);
+
+      if (!token) {
+        window.location.href = "/login";
+        return;
+      }
+      const response = await fetch("/chat/sessions", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.error("Failed to load sessions");
+        return;
+      }
+
+      const sessions = await response.json();
+      const conversationList = document.getElementById("conversationList");
+      conversationList.innerHTML = "";
+
+      sessions.forEach(session => {
+        const item = document.createElement("button");
+        item.className = "conversation-item";
+        item.type = "button";
+        item.dataset.sessionId = session.id;
+
+        const title = session.title.length > 32
+          ? session.title.slice(0, 32) + "..."
+          : session.title;
+
+        item.innerHTML = `
+  <span class="conversation-text">${escapeHtml(title)}</span>
+  <span class="delete-session-btn" title="Delete">
+    <i class="fa-solid fa-trash"></i>
+  </span>
+  <span class="active-dot"></span>
+`;
+
+        item.addEventListener("click", function () {
+          setActiveChat(this.dataset.sessionId);
+        });
+
+        const deleteBtn = item.querySelector(".delete-session-btn");
+
+        deleteBtn.addEventListener("click", async function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          const token = sessionStorage.getItem("access_token");
+
+          const response = await fetch(`/chat/sessions/${session.id}`, {
+            method: "DELETE",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) {
+            console.error("Failed to delete session");
+            return;
+          }
+
+          if (sessionId === session.id) {
+            newChat();
+          }
+
+          await loadSessions();
+        });
+
+        conversationList.appendChild(item);
+      });
+    }
+
+
+    async function loadConversation(targetSessionId) {
+      const token = sessionStorage.getItem("access_token");
+      const response = await fetch(`/chat/sessions/${targetSessionId}/messages`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.error("Failed to load messages");
+        return;
+      }
+
+      const data = await response.json();
+
+      chatScroll.innerHTML = "";
+
+      data.messages.forEach(message => {
+        const row = document.createElement("div");
+
+        if (message.role === "user") {
+          row.className = "message-row user";
+          row.innerHTML = `
+        <div class="message user">${escapeHtml(message.content)}</div>
+        <div class="avatar user">U</div>
+      `;
+        } else {
+          row.className = "message-row";
+          row.innerHTML = `
+        <div class="avatar ai">AI</div>
+        <div class="message assistant">${formatResponse(message.content)}</div>
+      `;
+        }
+
+        chatScroll.appendChild(row);
+      });
+
+      chatScroll.scrollTop = chatScroll.scrollHeight;
+    }
+    async function setActiveChat(targetSessionId) {
+      sessionId = targetSessionId;
+      currentChatHasTitle = true;
+
+      document.querySelectorAll(".conversation-item").forEach(item => {
+        item.classList.toggle("active", item.dataset.sessionId === targetSessionId);
+      });
+
+      await loadConversation(targetSessionId);
+    }
+
+    function parseSSEBlock(block) {
+      const lines = block.split("\n");
+
+      let eventType = "message";
+      let dataLines = [];
+
+      for (const line of lines) {
+        if (line.startsWith("event:")) {
+          eventType = line.replace("event:", "").trim();
+        }
+
+        if (line.startsWith("data:")) {
+          dataLines.push(line.replace("data:", "").trim());
+        }
+      }
+
+      return {
+        eventType,
+        data: dataLines.join("\n"),
+      };
+    }
+
+   async function sendMessage() {
+  const token = sessionStorage.getItem("access_token");
+  const question = promptInput.value.trim();
+  if (!question) return;
+
+  const userRow = document.createElement("div");
+  userRow.className = "message-row user";
+  userRow.innerHTML = `
+    <div class="message user">${escapeHtml(question)}</div>
+    <div class="avatar user">U</div>
+  `;
+  chatScroll.appendChild(userRow);
+
+  promptInput.value = "";
+
+  const aiRow = document.createElement("div");
+  aiRow.className = "message-row";
+  aiRow.innerHTML = `
+    <div class="avatar ai">AI</div>
+    <div class="message assistant"></div>
+  `;
+  chatScroll.appendChild(aiRow);
+
+  const assistantBubble = aiRow.querySelector(".message.assistant");
+  assistantBubble.textContent = "Thinking...";
+  chatScroll.scrollTop = chatScroll.scrollHeight;
+
+  try {
+    const response = await fetch("/chat/stream", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        question: question,
+        session_id: sessionId,
+      }),
+    });
+
+    if (!response.ok || !response.body) {
+      assistantBubble.textContent = "Server error while generating the answer.";
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    let assistantMessage = "";
+    let buffer = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      const blocks = buffer.split("\n\n");
+      buffer = blocks.pop();
+
+      for (const block of blocks) {
+        if (!block.trim()) continue;
+
+        const { eventType, data } = parseSSEBlock(block);
+
+        if (eventType === "session") {
+          const sessionData = JSON.parse(data);
+
+          sessionId = sessionData.session_id;
+
+          if (!currentChatHasTitle) {
+            addChatToHistory({
+              session_id: sessionData.session_id,
+              title: sessionData.title
+            });
+
+            currentChatHasTitle = true;
+          }
+        }
+
+        if (eventType === "token") {
+          assistantBubble.textContent = "";
+
+          const token = JSON.parse(data);
+          assistantMessage += token;
+
+          assistantBubble.innerHTML = formatResponse(assistantMessage);
+          chatScroll.scrollTop = chatScroll.scrollHeight;
+        }
+
+        if (eventType === "metadata") {
+          const metadata = JSON.parse(data);
+
+          const metadataRow = document.createElement("div");
+          metadataRow.className = "message-row metadata-row";
+
+          metadataRow.innerHTML = `
+            <div class="avatar ai">AI</div>
+            <div class="message assistant metadata-bubble">
+              ${formatSources(metadata)}
+            </div>
+          `;
+
+          chatScroll.appendChild(metadataRow);
+          chatScroll.scrollTop = chatScroll.scrollHeight;
+        }
+
+        if (eventType === "done") {
+          await loadSessions();
+          return;
+        }
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    assistantBubble.textContent = "Could not connect to the server.";
+  }
+}
+
+    function formatResponse(text) {
+      if (!text) return "";
+
+      return text
+        .split(/(?<=\.)\s+/)
+        .filter(p => p.trim().length > 0)
+        .map(p => `<p>${escapeHtml(p.trim())}</p>`)
+        .join("");
+    }
+
+    function formatSources(metadata) {
+      if (!metadata) return "";
+
+      const sources = metadata.sources || [];
+
+      return `
+    <div class="metadata-panel">
+      <div class="sources">
+        <strong>Sources</strong>
+
+        ${sources.length
+          ? `
+          <ul>
+            ${sources.map(source => `
+              <li>
+                ${escapeHtml(source.doc_id)}
+                | Section ${escapeHtml(source.section_number)}
+                | ${escapeHtml(source.title)}
+                | page ${escapeHtml(source.page)}
+              </li>
+            `).join("")}
+          </ul>
+        `
+          : `<div class="no-sources">No sources found for this answer.</div>`
+        }
+
+      </div>
+    </div>
+  `;
+    }
+
+
+    promptInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+
+
+
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    logoutBtn.addEventListener("click", () => {
+      // remove stored auth data
+      sessionStorage.removeItem("access_token");
+      sessionStorage.removeItem("user");
+
+      // redirect to login page
+      window.location.href = "/login";
+    });
+    document.addEventListener("DOMContentLoaded", loadSessions);
+  </script>
+</body>
+
+</html>
