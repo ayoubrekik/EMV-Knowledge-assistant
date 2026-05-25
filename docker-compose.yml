@@ -1,20 +1,5 @@
 version: "3.9"
 
-# services:
-#   ai-agent:
-#     build: .
-#     container_name: ai_agent
-#     volumes:
-#       - .:/app
-#       - ./data:/app/data
-#       - ./models/huggingface:/root/.cache/huggingface
-#       - ./models/torch:/root/.cache/torch
-#       - ./models/ollama:/root/.ollama
-#     ports:
-#       - "8888:8888"
-#     tty: true
-#     stdin_open: true
-#     command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 
 services:
 
@@ -104,15 +89,3 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-  # ollama:
-  #   image: ollama/ollama:latest
-  #   ports:
-  #     - "11434:11434"
-  #   volumes:
-  #     - ./src/storage/models/ollama:/root/.ollama
-  #   restart: unless-stopped
-  # ingestion:
-  #   build: .
-  #   command: python ingestion/run_indexing.py
-  #   depends_on:
-  #     - chroma
