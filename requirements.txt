@@ -25,6 +25,7 @@ torch>=2.2.0
 chromadb-client
 
 requests
+rank-bm25
 
 # LangChain ecosystem
 # 0.2.x conflicts with Docling's pydantic v2 and httpx requirements
@@ -52,11 +53,11 @@ ipykernel==6.29.4
 docling
 
 #postgres
-postgresql-client
 sqlalchemy>=2.0
 psycopg2-binary
 
 #Login
 passlib[bcrypt]
+bcrypt==4.0.1
 python-jose[cryptography]
 python-multipart
