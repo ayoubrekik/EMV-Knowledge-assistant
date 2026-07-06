@@ -300,10 +300,6 @@ def decode_from_registry(question: str) -> Optional[str]:
             decode_bit_ranges(byte_hex, byte_index, byte_rules)
             )
 
-            decoded_lines.extend(
-            decode_bitmap_byte(byte_hex, byte_index, byte_rules)
-            )
-
         if decoder_type in ["value_map", "mixed", "nibble_map"]:
             decoded_lines.extend(
                 decode_value_byte(byte_hex, byte_index, byte_rules)
@@ -330,9 +326,6 @@ Decoded meaning:
 
 {chr(10).join(f"- {line}" for line in decoded_lines)}
 
-Overall summary:
-
-<short summary strictly based on matched definitions>
 
 Citations:
 

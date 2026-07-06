@@ -2,44 +2,41 @@ import os
 import chromadb
 
 from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
 
+from src.core.db.chroma_client import (
+    LocalSentenceTransformerEmbeddingFunction,
+)
 
 CHROMA_HOST = os.getenv("CHROMA_HOST", "chroma")
 CHROMA_PORT = int(os.getenv("CHROMA_PORT", "8000"))
-
-COLLECTION_NAME = os.getenv("CHROMA_COLLECTION", "emv_collection")
+COLLECTION_NAME = os.getenv("CHROMA_COLLECTION", "emv_knowledge_all_docs")
 
 EMBEDDING_MODEL_NAME = os.getenv(
     "EMBEDDING_MODEL",
-    "sentence-transformers/all-MiniLM-L6-v2"
+    "BAAI/bge-large-en-v1.5",
 )
 
 
 def get_embedding_model():
-    return HuggingFaceEmbeddings(
-        model_name=EMBEDDING_MODEL_NAME
+    return LocalSentenceTransformerEmbeddingFunction(
+        EMBEDDING_MODEL_NAME
     )
 
 
 def get_langchain_chroma():
     client = chromadb.HttpClient(
         host=CHROMA_HOST,
-        port=CHROMA_PORT
+        port=CHROMA_PORT,
     )
 
-    vectorstore = Chroma(
+    return Chroma(
         client=client,
         collection_name=COLLECTION_NAME,
         embedding_function=get_embedding_model(),
     )
 
-    return vectorstore
-
 
 def get_retriever(k: int = 5):
-    vectorstore = get_langchain_chroma()
-
-    return vectorstore.as_retriever(
+    return get_langchain_chroma().as_retriever(
         search_kwargs={"k": k}
     )

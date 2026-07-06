@@ -2,7 +2,7 @@ import requests
 import os
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
-MODEL_NAME = os.getenv("MODEL_NAME", "mistral")
+MODEL_NAME = "qwen3:8b" #os.getenv("MODEL_NAME", "qwen3:8b")
 
 
 def generate_title(question: str) -> str:

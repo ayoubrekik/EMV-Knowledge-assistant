@@ -1,0 +1,2287 @@
+{
+  "decoders": {
+    "AIP": {
+      "aliases": [
+        "AIP",
+        "Application Interchange Profile",
+        "tag 82",
+        "82"
+      ],
+      "tag": "82",
+      "type": "bitmap",
+      "length_bytes": 2,
+      "source": {
+        "book": "Book 3",
+        "section": "Annex C1",
+        "title": "Application Interchange Profile",
+        "table": "Table 41",
+        "page": 173
+      },
+      "bytes": {
+        "1": {
+          "name": "AIP Byte 1",
+          "bits": {
+            "b8": "XDA supported",
+            "b7": "SDA supported",
+            "b6": "DDA supported",
+            "b5": "Cardholder verification is supported",
+            "b4": "Terminal risk management is to be performed",
+            "b3": "Issuer authentication is supported",
+            "b2": "Reserved for use by the EMV Contactless Specifications - shall be 0",
+            "b1": "CDA supported"
+          }
+        },
+        "2": {
+          "name": "AIP Byte 2",
+          "bits": {
+            "b8": "Reserved for use by the EMV Contactless Specifications - shall be 0",
+            "b7": "Reserved for use by the EMV Contactless Specifications - shall be 0",
+            "b6": "Reserved for use by the EMV Contactless Specifications - shall be 0",
+            "b5": "RFU - shall be 0",
+            "b4": "RFU - shall be 0",
+            "b3": "RFU - shall be 0",
+            "b2": "RFU - shall be 0",
+            "b1": "Reserved for use by the EMV Contactless Specifications - shall be 0"
+          }
+        }
+      }
+    },
+    "AUC": {
+      "aliases": [
+        "AUC",
+        "Application Usage Control",
+        "tag 9F07",
+        "9F07"
+      ],
+      "tag": "9F07",
+      "type": "bitmap",
+      "length_bytes": 2,
+      "source": {
+        "book": "Book 3",
+        "section": "Annex C2",
+        "title": "Application Usage Control",
+        "table": "Table 42",
+        "page": 174
+      },
+      "bytes": {
+        "1": {
+          "name": "Application Usage Control Byte 1",
+          "bits": {
+            "b8": "Valid for domestic cash transactions",
+            "b7": "Valid for international cash transactions",
+            "b6": "Valid for domestic goods",
+            "b5": "Valid for international goods",
+            "b4": "Valid for domestic services",
+            "b3": "Valid for international services",
+            "b2": "Valid at ATMs",
+            "b1": "Valid at terminals other than ATMs"
+          }
+        },
+        "2": {
+          "name": "Application Usage Control Byte 2",
+          "bits": {
+            "b8": "Domestic cashback allowed",
+            "b7": "International cashback allowed",
+            "b6": "RFU - shall be 0",
+            "b5": "RFU - shall be 0",
+            "b4": "RFU - shall be 0",
+            "b3": "RFU - shall be 0",
+            "b2": "RFU - shall be 0",
+            "b1": "RFU - shall be 0"
+          }
+        }
+      }
+    },
+    "TVR": {
+      "aliases": [
+        "TVR",
+        "Terminal Verification Results",
+        "tag 95",
+        "95"
+      ],
+      "tag": "95",
+      "type": "bitmap",
+      "length_bytes": 5,
+      "source": {
+        "book": "Book 3",
+        "section": "Annex C5",
+        "title": "Terminal Verification Results / Action Codes",
+        "table": "Table 46",
+        "page": 179
+      },
+      "note": "For TAC/IAC, the 5-byte mask uses the same bit positions/conditions as TVR. A set bit means the action code checks that corresponding TVR condition.",
+      "bytes": {
+        "1": {
+          "name": "TVR Byte 1 - Offline data authentication",
+          "bits": {
+            "b8": "Offline data authentication was not performed",
+            "b7": "SDA failed",
+            "b6": "ICC data missing",
+            "b5": "Card appears on terminal exception file",
+            "b4": "DDA failed",
+            "b3": "CDA failed",
+            "b2": "SDA selected",
+            "b1": "XDA selected"
+          }
+        },
+        "2": {
+          "name": "TVR Byte 2 - Processing restrictions",
+          "bits": {
+            "b8": "ICC and terminal have different application versions",
+            "b7": "Expired application",
+            "b6": "Application not yet effective",
+            "b5": "Requested service not allowed for card product",
+            "b4": "New card",
+            "b3": "RFU - shall be 0",
+            "b2": "Biometric performed and successful",
+            "b1": "Biometric template format not supported"
+          }
+        },
+        "3": {
+          "name": "TVR Byte 3 - Cardholder verification",
+          "bits": {
+            "b8": "Cardholder verification was not successful",
+            "b7": "Unrecognised CVM",
+            "b6": "PIN Try Limit exceeded",
+            "b5": "PIN entry required and PIN pad not present or not working",
+            "b4": "PIN entry required, PIN pad present, but PIN was not entered",
+            "b3": "Online CVM captured",
+            "b2": "Biometric required but Biometric capture device not working",
+            "b1": "Biometric required, Biometric capture device present, but Biometric Subtype entry was bypassed"
+          }
+        },
+        "4": {
+          "name": "TVR Byte 4 - Terminal risk management",
+          "bits": {
+            "b8": "Transaction exceeds floor limit",
+            "b7": "Lower consecutive offline limit exceeded",
+            "b6": "Upper consecutive offline limit exceeded",
+            "b5": "Transaction selected randomly for online processing",
+            "b4": "Merchant forced transaction online",
+            "b3": "Biometric Try Limit exceeded",
+            "b2": "A selected Biometric Type not supported",
+            "b1": "XDA signature verification failed"
+          }
+        },
+        "5": {
+          "name": "TVR Byte 5 - Issuer authentication and script processing",
+          "bits": {
+            "b8": "Default TDOL used",
+            "b7": "Issuer authentication failed",
+            "b6": "Script processing failed before final GENERATE AC",
+            "b5": "Script processing failed after final GENERATE AC",
+            "b4": "Reserved for use by the EMV Contactless Specifications - shall be 0",
+            "b3": "CA ECC key missing",
+            "b2": "ECC key recovery failed",
+            "b1": "Reserved for use by the EMV Contactless Specifications - shall be 0"
+          }
+        }
+      }
+    },
+    "TAC Default": {
+      "aliases": [
+        "TAC Default",
+        "Terminal Action Code Default"
+      ],
+      "tag": null,
+      "type": "bitmap",
+      "length_bytes": 5,
+      "source": {
+        "book": "Book 3",
+        "section": "Terminal/Card Action Analysis",
+        "title": "Terminal Verification Results / Action Codes",
+        "table": "Table 46",
+        "page": 179
+      },
+      "note": "For TAC/IAC, the 5-byte mask uses the same bit positions/conditions as TVR. A set bit means the action code checks that corresponding TVR condition.",
+      "bytes": {
+        "1": {
+          "name": "TVR Byte 1 - Offline data authentication",
+          "bits": {
+            "b8": "Offline data authentication was not performed",
+            "b7": "SDA failed",
+            "b6": "ICC data missing",
+            "b5": "Card appears on terminal exception file",
+            "b4": "DDA failed",
+            "b3": "CDA failed",
+            "b2": "SDA selected",
+            "b1": "XDA selected"
+          }
+        },
+        "2": {
+          "name": "TVR Byte 2 - Processing restrictions",
+          "bits": {
+            "b8": "ICC and terminal have different application versions",
+            "b7": "Expired application",
+            "b6": "Application not yet effective",
+            "b5": "Requested service not allowed for card product",
+            "b4": "New card",
+            "b3": "RFU - shall be 0",
+            "b2": "Biometric performed and successful",
+            "b1": "Biometric template format not supported"
+          }
+        },
+        "3": {
+          "name": "TVR Byte 3 - Cardholder verification",
+          "bits": {
+            "b8": "Cardholder verification was not successful",
+            "b7": "Unrecognised CVM",
+            "b6": "PIN Try Limit exceeded",
+            "b5": "PIN entry required and PIN pad not present or not working",
+            "b4": "PIN entry required, PIN pad present, but PIN was not entered",
+            "b3": "Online CVM captured",
+            "b2": "Biometric required but Biometric capture device not working",
+            "b1": "Biometric required, Biometric capture device present, but Biometric Subtype entry was bypassed"
+          }
+        },
+        "4": {
+          "name": "TVR Byte 4 - Terminal risk management",
+          "bits": {
+            "b8": "Transaction exceeds floor limit",
+            "b7": "Lower consecutive offline limit exceeded",
+            "b6": "Upper consecutive offline limit exceeded",
+            "b5": "Transaction selected randomly for online processing",
+            "b4": "Merchant forced transaction online",
+            "b3": "Biometric Try Limit exceeded",
+            "b2": "A selected Biometric Type not supported",
+            "b1": "XDA signature verification failed"
+          }
+        },
+        "5": {
+          "name": "TVR Byte 5 - Issuer authentication and script processing",
+          "bits": {
+            "b8": "Default TDOL used",
+            "b7": "Issuer authentication failed",
+            "b6": "Script processing failed before final GENERATE AC",
+            "b5": "Script processing failed after final GENERATE AC",
+            "b4": "Reserved for use by the EMV Contactless Specifications - shall be 0",
+            "b3": "CA ECC key missing",
+            "b2": "ECC key recovery failed",
+            "b1": "Reserved for use by the EMV Contactless Specifications - shall be 0"
+          }
+        }
+      }
+    },
+    "TAC Denial": {
+      "aliases": [
+        "TAC Denial",
+        "Terminal Action Code Denial"
+      ],
+      "tag": null,
+      "type": "bitmap",
+      "length_bytes": 5,
+      "source": {
+        "book": "Book 3",
+        "section": "Terminal/Card Action Analysis",
+        "title": "Terminal Verification Results / Action Codes",
+        "table": "Table 46",
+        "page": 179
+      },
+      "note": "For TAC/IAC, the 5-byte mask uses the same bit positions/conditions as TVR. A set bit means the action code checks that corresponding TVR condition.",
+      "bytes": {
+        "1": {
+          "name": "TVR Byte 1 - Offline data authentication",
+          "bits": {
+            "b8": "Offline data authentication was not performed",
+            "b7": "SDA failed",
+            "b6": "ICC data missing",
+            "b5": "Card appears on terminal exception file",
+            "b4": "DDA failed",
+            "b3": "CDA failed",
+            "b2": "SDA selected",
+            "b1": "XDA selected"
+          }
+        },
+        "2": {
+          "name": "TVR Byte 2 - Processing restrictions",
+          "bits": {
+            "b8": "ICC and terminal have different application versions",
+            "b7": "Expired application",
+            "b6": "Application not yet effective",
+            "b5": "Requested service not allowed for card product",
+            "b4": "New card",
+            "b3": "RFU - shall be 0",
+            "b2": "Biometric performed and successful",
+            "b1": "Biometric template format not supported"
+          }
+        },
+        "3": {
+          "name": "TVR Byte 3 - Cardholder verification",
+          "bits": {
+            "b8": "Cardholder verification was not successful",
+            "b7": "Unrecognised CVM",
+            "b6": "PIN Try Limit exceeded",
+            "b5": "PIN entry required and PIN pad not present or not working",
+            "b4": "PIN entry required, PIN pad present, but PIN was not entered",
+            "b3": "Online CVM captured",
+            "b2": "Biometric required but Biometric capture device not working",
+            "b1": "Biometric required, Biometric capture device present, but Biometric Subtype entry was bypassed"
+          }
+        },
+        "4": {
+          "name": "TVR Byte 4 - Terminal risk management",
+          "bits": {
+            "b8": "Transaction exceeds floor limit",
+            "b7": "Lower consecutive offline limit exceeded",
+            "b6": "Upper consecutive offline limit exceeded",
+            "b5": "Transaction selected randomly for online processing",
+            "b4": "Merchant forced transaction online",
+            "b3": "Biometric Try Limit exceeded",
+            "b2": "A selected Biometric Type not supported",
+            "b1": "XDA signature verification failed"
+          }
+        },
+        "5": {
+          "name": "TVR Byte 5 - Issuer authentication and script processing",
+          "bits": {
+            "b8": "Default TDOL used",
+            "b7": "Issuer authentication failed",
+            "b6": "Script processing failed before final GENERATE AC",
+            "b5": "Script processing failed after final GENERATE AC",
+            "b4": "Reserved for use by the EMV Contactless Specifications - shall be 0",
+            "b3": "CA ECC key missing",
+            "b2": "ECC key recovery failed",
+            "b1": "Reserved for use by the EMV Contactless Specifications - shall be 0"
+          }
+        }
+      }
+    },
+    "TAC Online": {
+      "aliases": [
+        "TAC Online",
+        "Terminal Action Code Online"
+      ],
+      "tag": null,
+      "type": "bitmap",
+      "length_bytes": 5,
+      "source": {
+        "book": "Book 3",
+        "section": "Terminal/Card Action Analysis",
+        "title": "Terminal Verification Results / Action Codes",
+        "table": "Table 46",
+        "page": 179
+      },
+      "note": "For TAC/IAC, the 5-byte mask uses the same bit positions/conditions as TVR. A set bit means the action code checks that corresponding TVR condition.",
+      "bytes": {
+        "1": {
+          "name": "TVR Byte 1 - Offline data authentication",
+          "bits": {
+            "b8": "Offline data authentication was not performed",
+            "b7": "SDA failed",
+            "b6": "ICC data missing",
+            "b5": "Card appears on terminal exception file",
+            "b4": "DDA failed",
+            "b3": "CDA failed",
+            "b2": "SDA selected",
+            "b1": "XDA selected"
+          }
+        },
+        "2": {
+          "name": "TVR Byte 2 - Processing restrictions",
+          "bits": {
+            "b8": "ICC and terminal have different application versions",
+            "b7": "Expired application",
+            "b6": "Application not yet effective",
+            "b5": "Requested service not allowed for card product",
+            "b4": "New card",
+            "b3": "RFU - shall be 0",
+            "b2": "Biometric performed and successful",
+            "b1": "Biometric template format not supported"
+          }
+        },
+        "3": {
+          "name": "TVR Byte 3 - Cardholder verification",
+          "bits": {
+            "b8": "Cardholder verification was not successful",
+            "b7": "Unrecognised CVM",
+            "b6": "PIN Try Limit exceeded",
+            "b5": "PIN entry required and PIN pad not present or not working",
+            "b4": "PIN entry required, PIN pad present, but PIN was not entered",
+            "b3": "Online CVM captured",
+            "b2": "Biometric required but Biometric capture device not working",
+            "b1": "Biometric required, Biometric capture device present, but Biometric Subtype entry was bypassed"
+          }
+        },
+        "4": {
+          "name": "TVR Byte 4 - Terminal risk management",
+          "bits": {
+            "b8": "Transaction exceeds floor limit",
+            "b7": "Lower consecutive offline limit exceeded",
+            "b6": "Upper consecutive offline limit exceeded",
+            "b5": "Transaction selected randomly for online processing",
+            "b4": "Merchant forced transaction online",
+            "b3": "Biometric Try Limit exceeded",
+            "b2": "A selected Biometric Type not supported",
+            "b1": "XDA signature verification failed"
+          }
+        },
+        "5": {
+          "name": "TVR Byte 5 - Issuer authentication and script processing",
+          "bits": {
+            "b8": "Default TDOL used",
+            "b7": "Issuer authentication failed",
+            "b6": "Script processing failed before final GENERATE AC",
+            "b5": "Script processing failed after final GENERATE AC",
+            "b4": "Reserved for use by the EMV Contactless Specifications - shall be 0",
+            "b3": "CA ECC key missing",
+            "b2": "ECC key recovery failed",
+            "b1": "Reserved for use by the EMV Contactless Specifications - shall be 0"
+          }
+        }
+      }
+    },
+    "IAC Default": {
+      "aliases": [
+        "IAC Default",
+        "Issuer Action Code Default"
+      ],
+      "tag": null,
+      "type": "bitmap",
+      "length_bytes": 5,
+      "source": {
+        "book": "Book 3",
+        "section": "Terminal/Card Action Analysis",
+        "title": "Terminal Verification Results / Action Codes",
+        "table": "Table 46",
+        "page": 179
+      },
+      "note": "For TAC/IAC, the 5-byte mask uses the same bit positions/conditions as TVR. A set bit means the action code checks that corresponding TVR condition.",
+      "bytes": {
+        "1": {
+          "name": "TVR Byte 1 - Offline data authentication",
+          "bits": {
+            "b8": "Offline data authentication was not performed",
+            "b7": "SDA failed",
+            "b6": "ICC data missing",
+            "b5": "Card appears on terminal exception file",
+            "b4": "DDA failed",
+            "b3": "CDA failed",
+            "b2": "SDA selected",
+            "b1": "XDA selected"
+          }
+        },
+        "2": {
+          "name": "TVR Byte 2 - Processing restrictions",
+          "bits": {
+            "b8": "ICC and terminal have different application versions",
+            "b7": "Expired application",
+            "b6": "Application not yet effective",
+            "b5": "Requested service not allowed for card product",
+            "b4": "New card",
+            "b3": "RFU - shall be 0",
+            "b2": "Biometric performed and successful",
+            "b1": "Biometric template format not supported"
+          }
+        },
+        "3": {
+          "name": "TVR Byte 3 - Cardholder verification",
+          "bits": {
+            "b8": "Cardholder verification was not successful",
+            "b7": "Unrecognised CVM",
+            "b6": "PIN Try Limit exceeded",
+            "b5": "PIN entry required and PIN pad not present or not working",
+            "b4": "PIN entry required, PIN pad present, but PIN was not entered",
+            "b3": "Online CVM captured",
+            "b2": "Biometric required but Biometric capture device not working",
+            "b1": "Biometric required, Biometric capture device present, but Biometric Subtype entry was bypassed"
+          }
+        },
+        "4": {
+          "name": "TVR Byte 4 - Terminal risk management",
+          "bits": {
+            "b8": "Transaction exceeds floor limit",
+            "b7": "Lower consecutive offline limit exceeded",
+            "b6": "Upper consecutive offline limit exceeded",
+            "b5": "Transaction selected randomly for online processing",
+            "b4": "Merchant forced transaction online",
+            "b3": "Biometric Try Limit exceeded",
+            "b2": "A selected Biometric Type not supported",
+            "b1": "XDA signature verification failed"
+          }
+        },
+        "5": {
+          "name": "TVR Byte 5 - Issuer authentication and script processing",
+          "bits": {
+            "b8": "Default TDOL used",
+            "b7": "Issuer authentication failed",
+            "b6": "Script processing failed before final GENERATE AC",
+            "b5": "Script processing failed after final GENERATE AC",
+            "b4": "Reserved for use by the EMV Contactless Specifications - shall be 0",
+            "b3": "CA ECC key missing",
+            "b2": "ECC key recovery failed",
+            "b1": "Reserved for use by the EMV Contactless Specifications - shall be 0"
+          }
+        }
+      }
+    },
+    "IAC Denial": {
+      "aliases": [
+        "IAC Denial",
+        "Issuer Action Code Denial"
+      ],
+      "tag": null,
+      "type": "bitmap",
+      "length_bytes": 5,
+      "source": {
+        "book": "Book 3",
+        "section": "Terminal/Card Action Analysis",
+        "title": "Terminal Verification Results / Action Codes",
+        "table": "Table 46",
+        "page": 179
+      },
+      "note": "For TAC/IAC, the 5-byte mask uses the same bit positions/conditions as TVR. A set bit means the action code checks that corresponding TVR condition.",
+      "bytes": {
+        "1": {
+          "name": "TVR Byte 1 - Offline data authentication",
+          "bits": {
+            "b8": "Offline data authentication was not performed",
+            "b7": "SDA failed",
+            "b6": "ICC data missing",
+            "b5": "Card appears on terminal exception file",
+            "b4": "DDA failed",
+            "b3": "CDA failed",
+            "b2": "SDA selected",
+            "b1": "XDA selected"
+          }
+        },
+        "2": {
+          "name": "TVR Byte 2 - Processing restrictions",
+          "bits": {
+            "b8": "ICC and terminal have different application versions",
+            "b7": "Expired application",
+            "b6": "Application not yet effective",
+            "b5": "Requested service not allowed for card product",
+            "b4": "New card",
+            "b3": "RFU - shall be 0",
+            "b2": "Biometric performed and successful",
+            "b1": "Biometric template format not supported"
+          }
+        },
+        "3": {
+          "name": "TVR Byte 3 - Cardholder verification",
+          "bits": {
+            "b8": "Cardholder verification was not successful",
+            "b7": "Unrecognised CVM",
+            "b6": "PIN Try Limit exceeded",
+            "b5": "PIN entry required and PIN pad not present or not working",
+            "b4": "PIN entry required, PIN pad present, but PIN was not entered",
+            "b3": "Online CVM captured",
+            "b2": "Biometric required but Biometric capture device not working",
+            "b1": "Biometric required, Biometric capture device present, but Biometric Subtype entry was bypassed"
+          }
+        },
+        "4": {
+          "name": "TVR Byte 4 - Terminal risk management",
+          "bits": {
+            "b8": "Transaction exceeds floor limit",
+            "b7": "Lower consecutive offline limit exceeded",
+            "b6": "Upper consecutive offline limit exceeded",
+            "b5": "Transaction selected randomly for online processing",
+            "b4": "Merchant forced transaction online",
+            "b3": "Biometric Try Limit exceeded",
+            "b2": "A selected Biometric Type not supported",
+            "b1": "XDA signature verification failed"
+          }
+        },
+        "5": {
+          "name": "TVR Byte 5 - Issuer authentication and script processing",
+          "bits": {
+            "b8": "Default TDOL used",
+            "b7": "Issuer authentication failed",
+            "b6": "Script processing failed before final GENERATE AC",
+            "b5": "Script processing failed after final GENERATE AC",
+            "b4": "Reserved for use by the EMV Contactless Specifications - shall be 0",
+            "b3": "CA ECC key missing",
+            "b2": "ECC key recovery failed",
+            "b1": "Reserved for use by the EMV Contactless Specifications - shall be 0"
+          }
+        }
+      }
+    },
+    "IAC Online": {
+      "aliases": [
+        "IAC Online",
+        "Issuer Action Code Online"
+      ],
+      "tag": null,
+      "type": "bitmap",
+      "length_bytes": 5,
+      "source": {
+        "book": "Book 3",
+        "section": "Terminal/Card Action Analysis",
+        "title": "Terminal Verification Results / Action Codes",
+        "table": "Table 46",
+        "page": 179
+      },
+      "note": "For TAC/IAC, the 5-byte mask uses the same bit positions/conditions as TVR. A set bit means the action code checks that corresponding TVR condition.",
+      "bytes": {
+        "1": {
+          "name": "TVR Byte 1 - Offline data authentication",
+          "bits": {
+            "b8": "Offline data authentication was not performed",
+            "b7": "SDA failed",
+            "b6": "ICC data missing",
+            "b5": "Card appears on terminal exception file",
+            "b4": "DDA failed",
+            "b3": "CDA failed",
+            "b2": "SDA selected",
+            "b1": "XDA selected"
+          }
+        },
+        "2": {
+          "name": "TVR Byte 2 - Processing restrictions",
+          "bits": {
+            "b8": "ICC and terminal have different application versions",
+            "b7": "Expired application",
+            "b6": "Application not yet effective",
+            "b5": "Requested service not allowed for card product",
+            "b4": "New card",
+            "b3": "RFU - shall be 0",
+            "b2": "Biometric performed and successful",
+            "b1": "Biometric template format not supported"
+          }
+        },
+        "3": {
+          "name": "TVR Byte 3 - Cardholder verification",
+          "bits": {
+            "b8": "Cardholder verification was not successful",
+            "b7": "Unrecognised CVM",
+            "b6": "PIN Try Limit exceeded",
+            "b5": "PIN entry required and PIN pad not present or not working",
+            "b4": "PIN entry required, PIN pad present, but PIN was not entered",
+            "b3": "Online CVM captured",
+            "b2": "Biometric required but Biometric capture device not working",
+            "b1": "Biometric required, Biometric capture device present, but Biometric Subtype entry was bypassed"
+          }
+        },
+        "4": {
+          "name": "TVR Byte 4 - Terminal risk management",
+          "bits": {
+            "b8": "Transaction exceeds floor limit",
+            "b7": "Lower consecutive offline limit exceeded",
+            "b6": "Upper consecutive offline limit exceeded",
+            "b5": "Transaction selected randomly for online processing",
+            "b4": "Merchant forced transaction online",
+            "b3": "Biometric Try Limit exceeded",
+            "b2": "A selected Biometric Type not supported",
+            "b1": "XDA signature verification failed"
+          }
+        },
+        "5": {
+          "name": "TVR Byte 5 - Issuer authentication and script processing",
+          "bits": {
+            "b8": "Default TDOL used",
+            "b7": "Issuer authentication failed",
+            "b6": "Script processing failed before final GENERATE AC",
+            "b5": "Script processing failed after final GENERATE AC",
+            "b4": "Reserved for use by the EMV Contactless Specifications - shall be 0",
+            "b3": "CA ECC key missing",
+            "b2": "ECC key recovery failed",
+            "b1": "Reserved for use by the EMV Contactless Specifications - shall be 0"
+          }
+        }
+      }
+    },
+    "TSI": {
+      "aliases": [
+        "TSI",
+        "Transaction Status Information",
+        "tag 9B",
+        "9B"
+      ],
+      "tag": "9B",
+      "type": "bitmap",
+      "length_bytes": 2,
+      "source": {
+        "book": "Book 3",
+        "section": "Annex C6",
+        "title": "Transaction Status Information",
+        "table": "Table 47",
+        "page": 182
+      },
+      "bytes": {
+        "1": {
+          "name": "TSI Byte 1",
+          "bits": {
+            "b8": "Offline data authentication was performed",
+            "b7": "Cardholder verification was performed",
+            "b6": "Card risk management was performed",
+            "b5": "Issuer authentication was performed",
+            "b4": "Terminal risk management was performed",
+            "b3": "Script processing was performed",
+            "b2": "RFU - shall be 0",
+            "b1": "RFU - shall be 0"
+          }
+        },
+        "2": {
+          "name": "TSI Byte 2",
+          "bits": {
+            "b8": "RFU - shall be 0",
+            "b7": "RFU - shall be 0",
+            "b6": "RFU - shall be 0",
+            "b5": "RFU - shall be 0",
+            "b4": "RFU - shall be 0",
+            "b3": "RFU - shall be 0",
+            "b2": "RFU - shall be 0",
+            "b1": "RFU - shall be 0"
+          }
+        }
+      }
+    },
+    "Terminal Capabilities": {
+      "aliases": [
+        "Terminal Capabilities",
+        "tag 9F33",
+        "9F33"
+      ],
+      "tag": "9F33",
+      "type": "bitmap",
+      "length_bytes": 3,
+      "source": {
+        "book": "Book 4",
+        "section": "Annex A2",
+        "title": "Terminal Capabilities",
+        "table": "Tables 25-27",
+        "page": 110
+      },
+      "bytes": {
+        "1": {
+          "name": "Card Data Input Capability",
+          "bits": {
+            "b8": "Manual key entry",
+            "b7": "Magnetic stripe",
+            "b6": "IC with contacts",
+            "b5": "RFU - shall be 0",
+            "b4": "RFU - shall be 0",
+            "b3": "RFU - shall be 0",
+            "b2": "RFU - shall be 0",
+            "b1": "RFU - shall be 0"
+          }
+        },
+        "2": {
+          "name": "CVM Capability",
+          "bits": {
+            "b8": "Plaintext PIN for ICC verification",
+            "b7": "Enciphered PIN for online verification",
+            "b6": "Signature",
+            "b5": "Enciphered PIN for offline verification (RSA ODE)",
+            "b4": "No CVM Required",
+            "b3": "Online Biometric",
+            "b2": "Offline Biometric",
+            "b1": "Enciphered PIN for offline verification (ECC ODE)"
+          }
+        },
+        "3": {
+          "name": "Security Capability",
+          "bits": {
+            "b8": "SDA",
+            "b7": "DDA",
+            "b6": "Card capture",
+            "b5": "RFU - shall be 0",
+            "b4": "CDA",
+            "b3": "XDA",
+            "b2": "RFU - shall be 0",
+            "b1": "RFU - shall be 0"
+          }
+        }
+      }
+    },
+    "Additional Terminal Capabilities": {
+      "aliases": [
+        "Additional Terminal Capabilities",
+        "tag 9F40",
+        "9F40"
+      ],
+      "tag": "9F40",
+      "type": "bitmap",
+      "length_bytes": 5,
+      "source": {
+        "book": "Book 4",
+        "section": "Annex A3",
+        "title": "Additional Terminal Capabilities",
+        "table": "Tables 28-32",
+        "page": 112
+      },
+      "bytes": {
+        "1": {
+          "name": "Transaction Type Capability",
+          "bits": {
+            "b8": "Cash",
+            "b7": "Goods",
+            "b6": "Services",
+            "b5": "Cashback",
+            "b4": "Inquiry",
+            "b3": "Transfer",
+            "b2": "Payment",
+            "b1": "Administrative"
+          }
+        },
+        "2": {
+          "name": "Transaction Type Capability",
+          "bits": {
+            "b8": "Cash Deposit",
+            "b7": "RFU - shall be 0",
+            "b6": "RFU - shall be 0",
+            "b5": "RFU - shall be 0",
+            "b4": "RFU - shall be 0",
+            "b3": "RFU - shall be 0",
+            "b2": "RFU - shall be 0",
+            "b1": "RFU - shall be 0"
+          }
+        },
+        "3": {
+          "name": "Terminal Data Input Capability",
+          "bits": {
+            "b8": "Numeric keys",
+            "b7": "Alphabetic and special characters keys",
+            "b6": "Command keys",
+            "b5": "Function keys",
+            "b4": "RFU - shall be 0",
+            "b3": "RFU - shall be 0",
+            "b2": "RFU - shall be 0",
+            "b1": "RFU - shall be 0"
+          }
+        },
+        "4": {
+          "name": "Terminal Data Output Capability",
+          "bits": {
+            "b8": "Print or electronic, attendant",
+            "b7": "Print or electronic, cardholder",
+            "b6": "Display, attendant",
+            "b5": "Display, cardholder",
+            "b4": "RFU - shall be 0",
+            "b3": "RFU - shall be 0",
+            "b2": "Code table 10",
+            "b1": "Code table 9"
+          }
+        },
+        "5": {
+          "name": "Terminal Data Output Capability - Code tables",
+          "bits": {
+            "b8": "Code table 8",
+            "b7": "Code table 7",
+            "b6": "Code table 6",
+            "b5": "Code table 5",
+            "b4": "Code table 4",
+            "b3": "Code table 3",
+            "b2": "Code table 2",
+            "b1": "Code table 1"
+          }
+        }
+      }
+    },
+    "Biometric Terminal Capabilities": {
+      "aliases": [
+        "Biometric Terminal Capabilities",
+        "Biometric Term. Cap."
+      ],
+      "tag": null,
+      "type": "bitmap",
+      "length_bytes": 3,
+      "source": {
+        "book": "Book 4",
+        "section": "Annex A7",
+        "title": "Biometric Terminal Capabilities",
+        "table": "Tables 36-38",
+        "page": 117
+      },
+      "bytes": {
+        "1": {
+          "name": "Offline Biometric Capabilities",
+          "bits": {
+            "b8": "Facial biometric for offline verification",
+            "b7": "Finger biometric for offline verification",
+            "b6": "Iris biometric for offline verification",
+            "b5": "Palm biometric for offline verification",
+            "b4": "Voice biometric for offline verification",
+            "b3": "RFU - shall be 0",
+            "b2": "RFU - shall be 0",
+            "b1": "RFU - shall be 0"
+          }
+        },
+        "2": {
+          "name": "Online Biometric Capabilities",
+          "bits": {
+            "b8": "Facial biometric for online verification",
+            "b7": "Finger biometric for online verification",
+            "b6": "Iris biometric for online verification",
+            "b5": "Palm biometric for online verification",
+            "b4": "Voice biometric for online verification",
+            "b3": "RFU - shall be 0",
+            "b2": "RFU - shall be 0",
+            "b1": "RFU - shall be 0"
+          }
+        },
+        "3": {
+          "name": "RFU",
+          "bits": {
+            "b8": "RFU - shall be 0",
+            "b7": "RFU - shall be 0",
+            "b6": "RFU - shall be 0",
+            "b5": "RFU - shall be 0",
+            "b4": "RFU - shall be 0",
+            "b3": "RFU - shall be 0",
+            "b2": "RFU - shall be 0",
+            "b1": "RFU - shall be 0"
+          }
+        }
+      }
+    },
+    "CVM Codes": {
+      "aliases": [
+        "CVM Codes",
+        "Cardholder Verification Method Codes",
+        "CV Rule Byte 1",
+        "CVM Code"
+      ],
+      "tag": null,
+      "type": "mixed",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 3",
+        "section": "Annex C3",
+        "title": "Cardholder Verification Rule Format",
+        "table": "Table 43",
+        "page": 175
+      },
+      "byte": "1",
+      "interpretation": [
+        {
+          "type": "flag",
+          "mask": "40",
+          "meaning": "Apply succeeding CV Rule if this CVM is unsuccessful"
+        },
+        {
+          "type": "value_low_6_bits",
+          "mask": "3F",
+          "meaning": "CVM method code"
+        }
+      ],
+      "values": {
+        "00": "Fail CVM processing",
+        "01": "Plaintext PIN verification performed by ICC",
+        "02": "Enciphered PIN verified online",
+        "03": "Plaintext PIN verification performed by ICC and signature",
+        "04": "Enciphered PIN verification performed by ICC",
+        "05": "Enciphered PIN verification performed by ICC and signature",
+        "1E": "Signature",
+        "1F": "No CVM required",
+        "40": "Fail CVM processing; apply succeeding CV Rule if this CVM is unsuccessful",
+        "41": "Plaintext PIN verification performed by ICC; apply succeeding CV Rule if this CVM is unsuccessful",
+        "42": "Enciphered PIN verified online; apply succeeding CV Rule if this CVM is unsuccessful",
+        "43": "Plaintext PIN verification performed by ICC and signature; apply succeeding CV Rule if this CVM is unsuccessful",
+        "44": "Enciphered PIN verification performed by ICC; apply succeeding CV Rule if this CVM is unsuccessful",
+        "45": "Enciphered PIN verification performed by ICC and signature; apply succeeding CV Rule if this CVM is unsuccessful",
+        "5E": "Signature; apply succeeding CV Rule if this CVM is unsuccessful",
+        "5F": "No CVM required; apply succeeding CV Rule if this CVM is unsuccessful"
+      },
+      "ranges": [
+        {
+          "start": "06",
+          "end": "1D",
+          "meaning": "RFU"
+        },
+        {
+          "start": "20",
+          "end": "3F",
+          "meaning": "Reserved for use by individual payment systems"
+        },
+        {
+          "start": "46",
+          "end": "5D",
+          "meaning": "RFU; apply succeeding CV Rule if this CVM is unsuccessful"
+        },
+        {
+          "start": "60",
+          "end": "7F",
+          "meaning": "Reserved for use by individual payment systems"
+        },
+        {
+          "start": "80",
+          "end": "BF",
+          "meaning": "Reserved for use by individual payment systems"
+        },
+        {
+          "start": "C0",
+          "end": "FE",
+          "meaning": "Reserved for use by the issuer"
+        },
+        {
+          "start": "FF",
+          "end": "FF",
+          "meaning": "This value is not available for use"
+        }
+      ]
+    },
+    "CVM Condition Codes": {
+      "aliases": [
+        "CVM Condition Codes",
+        "CVM Condition Code",
+        "CV Rule Byte 2"
+      ],
+      "tag": null,
+      "type": "value_map",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 3",
+        "section": "Annex C3",
+        "title": "Cardholder Verification Rule Format",
+        "table": "Table 44",
+        "page": 177
+      },
+      "values": {
+        "00": "Always",
+        "01": "If unattended cash",
+        "02": "If not unattended cash and not manual cash and not purchase with cashback",
+        "03": "If terminal supports the CVM",
+        "04": "If manual cash",
+        "05": "If purchase with cashback",
+        "06": "If transaction is in the application currency and is under X value",
+        "07": "If transaction is in the application currency and is over X value",
+        "08": "If transaction is in the application currency and is under Y value",
+        "09": "If transaction is in the application currency and is over Y value"
+      },
+      "ranges": [
+        {
+          "start": "0A",
+          "end": "7F",
+          "meaning": "RFU"
+        },
+        {
+          "start": "80",
+          "end": "FF",
+          "meaning": "Reserved for use by individual payment systems"
+        }
+      ]
+    },
+    "CV Rule": {
+      "aliases": [
+        "CV Rule",
+        "CVM Rule",
+        "Cardholder Verification Rule"
+      ],
+      "tag": null,
+      "type": "mixed",
+      "length_bytes": 2,
+      "source": {
+        "book": "Book 3",
+        "section": "Annex C3",
+        "title": "Cardholder Verification Rule Format",
+        "table": "Tables 43-44",
+        "page": 175
+      },
+      "bytes": {
+        "1": {
+          "name": "CVM Code",
+          "ref": "CVM Codes"
+        },
+        "2": {
+          "name": "CVM Condition Code",
+          "ref": "CVM Condition Codes"
+        }
+      }
+    },
+    "CVM Results": {
+      "aliases": [
+        "CVM Results",
+        "tag 9F34",
+        "9F34"
+      ],
+      "tag": "9F34",
+      "type": "mixed",
+      "length_bytes": 3,
+      "source": {
+        "book": "Book 4",
+        "section": "Annex A4",
+        "title": "CVM Results",
+        "table": "Table 33",
+        "page": 115
+      },
+      "bytes": {
+        "1": {
+          "name": "CVM Performed",
+          "ref": "CVM Codes",
+          "special_values": {
+            "3F": "No CVM performed"
+          }
+        },
+        "2": {
+          "name": "CVM Condition",
+          "ref": "CVM Condition Codes",
+          "special_values": {
+            "00": "No actual CVM was performed / no meaning when no CVM was performed"
+          }
+        },
+        "3": {
+          "name": "CVM Result",
+          "values": {
+            "00": "Unknown, for example for signature",
+            "01": "Failed, for example for offline PIN",
+            "02": "Successful, for example for offline PIN"
+          },
+          "note": "Set to '01' if no CVM Condition Code was satisfied or if the CVM Code was not recognised or not supported."
+        }
+      }
+    },
+    "CID": {
+      "aliases": [
+        "CID",
+        "Cryptogram Information Data",
+        "tag 9F27",
+        "9F27"
+      ],
+      "tag": "9F27",
+      "type": "mixed",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 3",
+        "section": "6.5.5 / Table 15",
+        "title": "Coding of Cryptogram Information Data",
+        "table": "Table 15",
+        "page": 59
+      },
+      "bytes": {
+        "1": {
+          "name": "Cryptogram Information Data",
+          "bit_pairs": {
+            "b8_b7": {
+              "00": "AAC - Application Authentication Cryptogram / Transaction declined",
+              "01": "TC - Transaction Certificate / Transaction approved",
+              "10": "ARQC - Authorisation Request Cryptogram / Online authorisation requested",
+              "11": "RFU"
+            }
+          },
+          "bits": {
+            "b6": "Payment system-specific cryptogram",
+            "b5": "Advice required",
+            "b4": "Reason/advice code bit 4",
+            "b3": "Reason/advice code bit 3",
+            "b2": "Reason/advice code bit 2",
+            "b1": "Reason/advice code bit 1"
+          },
+          "low_nibble_note": "b4-b1 form the reason/advice code. If exact reason code is not present in this registry, fallback to RAG."
+        }
+      },
+      "fallback_required_for": [
+        "CID low-nibble reason/advice code exact meanings"
+      ]
+    },
+    "Terminal Type": {
+      "aliases": [
+        "Terminal Type",
+        "tag 9F35",
+        "9F35"
+      ],
+      "tag": "9F35",
+      "type": "value_map",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 4",
+        "section": "Annex A1",
+        "title": "Terminal Type",
+        "table": "Table 24",
+        "page": 109
+      },
+      "values": {
+        "11": "Attended, online only, controlled by financial institution",
+        "12": "Attended, offline with online capability, controlled by financial institution",
+        "13": "Attended, offline only, controlled by financial institution",
+        "14": "Unattended, online only, controlled by financial institution",
+        "15": "Unattended, offline with online capability, controlled by financial institution",
+        "16": "Unattended, offline only, controlled by financial institution",
+        "21": "Attended, online only, controlled by merchant",
+        "22": "Attended, offline with online capability, controlled by merchant",
+        "23": "Attended, offline only, controlled by merchant",
+        "24": "Unattended, online only, controlled by merchant",
+        "25": "Unattended, offline with online capability, controlled by merchant",
+        "26": "Unattended, offline only, controlled by merchant",
+        "34": "Unattended, online only, controlled by cardholder",
+        "35": "Unattended, offline with online capability, controlled by cardholder",
+        "36": "Unattended, offline only, controlled by cardholder"
+      }
+    },
+    "Transaction Type": {
+      "aliases": [
+        "Transaction Type",
+        "tag 9C",
+        "9C"
+      ],
+      "tag": "9C",
+      "type": "value_map",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 3",
+        "section": "Annex A / payment system transaction data",
+        "title": "Transaction Type",
+        "table": null,
+        "page": null
+      },
+      "values": {
+        "00": "Purchase of goods or services",
+        "01": "Cash",
+        "09": "Purchase with cashback",
+        "20": "Refund",
+        "21": "Deposit",
+        "31": "Balance inquiry",
+        "40": "Transfer",
+        "50": "Payment",
+        "60": "Administrative",
+        "70": "Cash deposit"
+      },
+      "note": "Common EMV transaction type values. Some values may be payment-system/acquirer specific; fallback to RAG if exact source is required."
+    },
+    "Authorisation Response Code": {
+      "aliases": [
+        "Authorisation Response Code",
+        "ARC",
+        "tag 8A",
+        "8A"
+      ],
+      "tag": "8A",
+      "type": "value_map",
+      "length_bytes": 2,
+      "source": {
+        "book": "Book 4",
+        "section": "Annex A6",
+        "title": "Authorisation Response Code",
+        "table": "Table 35",
+        "page": 116
+      },
+      "values": {
+        "Y1": "Offline approved",
+        "Z1": "Offline declined",
+        "Y3": "Unable to go online, offline approved",
+        "Z3": "Unable to go online, offline declined",
+        "00": "Online approved / approval",
+        "01": "Referral / call issuer",
+        "05": "Online declined / do not honour"
+      },
+      "note": "Book 4 Table 35 defines EMV-generated offline ARC values Y1/Z1/Y3/Z3. Online ARC values such as 00/01/05 are issuer/network response codes and may vary by host specification."
+    },
+    "Issuer Script Results": {
+      "aliases": [
+        "Issuer Script Results"
+      ],
+      "tag": null,
+      "type": "mixed",
+      "length_bytes": 5,
+      "source": {
+        "book": "Book 4",
+        "section": "Annex A5",
+        "title": "Issuer Script Results",
+        "table": "Table 34",
+        "page": 116
+      },
+      "bytes": {
+        "1": {
+          "name": "Script Result",
+          "nibbles": {
+            "high": {
+              "0": "Script not performed",
+              "1": "Script processing failed",
+              "2": "Script processing successful"
+            },
+            "low": {
+              "0": "Sequence number not specified",
+              "1-E": "Sequence number from 1 to 14",
+              "F": "Sequence number of 15 or above"
+            }
+          }
+        },
+        "2-5": {
+          "name": "Script Identifier",
+          "meaning": "Script Identifier of the Issuer Script received by the terminal, if available; zero filled if not. Mandatory if more than one Issuer Script was received by the terminal."
+        }
+      }
+    },
+    "Status Words SW1 SW2": {
+      "aliases": [
+        "Status Words",
+        "SW1 SW2",
+        "APDU Status",
+        "Status Word"
+      ],
+      "tag": null,
+      "type": "value_map",
+      "length_bytes": 2,
+      "source": {
+        "book": "Book 3",
+        "section": "6.3.5 and Annex F",
+        "title": "Status Bytes / External Authenticate Status",
+        "table": "Tables 4,5,55",
+        "page": 47
+      },
+      "values": {
+        "9000": "Command successfully executed / normal processing",
+        "6300": "Issuer authentication failed in EXTERNAL AUTHENTICATE context",
+        "6985": "Conditions of use not satisfied / command not supported in EXTERNAL AUTHENTICATE repeated/error-state context",
+        "6700": "Wrong length",
+        "6A82": "File or application not found",
+        "6283": "Selected file invalidated",
+        "6983": "Authentication method blocked",
+        "6984": "Referenced data invalidated",
+        "6986": "Command not allowed; no current EF",
+        "6A80": "Incorrect parameters in command data field",
+        "6A81": "Function not supported",
+        "6A83": "Record not found",
+        "6A84": "Not enough memory space",
+        "6A86": "Incorrect P1 P2",
+        "6A88": "Referenced data not found"
+      },
+      "ranges": [
+        {
+          "start": "6200",
+          "end": "62FF",
+          "meaning": "Warning processing; state of non-volatile memory unchanged"
+        },
+        {
+          "start": "6300",
+          "end": "63FF",
+          "meaning": "Warning processing; state of non-volatile memory changed"
+        },
+        {
+          "start": "6400",
+          "end": "64FF",
+          "meaning": "Execution error; state of non-volatile memory unchanged"
+        },
+        {
+          "start": "6500",
+          "end": "65FF",
+          "meaning": "Execution error; state of non-volatile memory changed"
+        },
+        {
+          "start": "6700",
+          "end": "67FF",
+          "meaning": "Checking error: wrong length"
+        },
+        {
+          "start": "6800",
+          "end": "68FF",
+          "meaning": "Checking error: functions in CLA not supported"
+        },
+        {
+          "start": "6900",
+          "end": "69FF",
+          "meaning": "Checking error: command not allowed"
+        },
+        {
+          "start": "6A00",
+          "end": "6AFF",
+          "meaning": "Checking error: wrong parameters P1-P2"
+        },
+        {
+          "start": "6B00",
+          "end": "6BFF",
+          "meaning": "Checking error: wrong parameters P1-P2"
+        },
+        {
+          "start": "6C00",
+          "end": "6CFF",
+          "meaning": "Checking error: wrong Le field; SW2 may indicate exact length"
+        },
+        {
+          "start": "6D00",
+          "end": "6DFF",
+          "meaning": "Checking error: instruction code not supported or invalid"
+        },
+        {
+          "start": "6E00",
+          "end": "6EFF",
+          "meaning": "Checking error: class not supported"
+        },
+        {
+          "start": "6F00",
+          "end": "6FFF",
+          "meaning": "Checking error: no precise diagnosis"
+        }
+      ]
+    },
+    "Application Priority Indicator": {
+      "aliases": [
+        "Application Priority Indicator",
+        "API",
+        "tag 87",
+        "87"
+      ],
+      "tag": "87",
+      "type": "mixed",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 1",
+        "section": "12.2.3 / Table 13",
+        "title": "Format of Application Priority Indicator",
+        "table": "Table 13",
+        "page": 52
+      },
+      "bytes": {
+        "1": {
+          "name": "Application Priority Indicator",
+          "bits": {
+            "b8": "Application cannot be selected without confirmation by the cardholder when set to 1; application may be selected without confirmation when set to 0"
+          },
+          "bit_fields": {
+            "b7_b6_b5": "RFU",
+            "b4_b3_b2_b1": "Application priority value"
+          },
+          "low_nibble_values": {
+            "0": "No priority assigned"
+          },
+          "low_nibble_ranges": [
+            {
+              "start": "1",
+              "end": "F",
+              "meaning": "Order in which the application is to be listed or selected, ranging from 1 to 15, with 1 being highest priority"
+            }
+          ],
+          "notes": [
+            "b8 controls whether cardholder confirmation is required.",
+            "b7-b5 are RFU.",
+            "b4-b1 encode the priority."
+          ]
+        }
+      }
+    },
+    "CSU": {
+      "aliases": [
+        "CSU",
+        "Card Status Update",
+        "CCD CSU",
+        "Card Status Update for a CCD-Compliant Application"
+      ],
+      "type": "mixed",
+      "length_bytes": 4,
+      "source": {
+        "book": "Book 3",
+        "section": "C10",
+        "title": "Card Status Update for a CCD-Compliant Application",
+        "table": "Table CCD 11",
+        "page": 225
+      },
+      "bytes": {
+        "1": {
+          "name": "CSU Byte 1",
+          "bits": {
+            "b8": "Proprietary Authentication Data Included"
+          },
+          "bit_pairs": {
+            "b7_b6_b5": {
+              "000": "RFU"
+            }
+          },
+          "low_nibble": {
+            "b4_b3_b2_b1": "PIN Try Counter"
+          },
+          "low_nibble_note": "b4-b1 represent the PIN Try Counter value."
+        },
+        "2": {
+          "name": "CSU Byte 2",
+          "bits": {
+            "b8": "Issuer Approves Online Transaction",
+            "b7": "Card Block",
+            "b6": "Application Block",
+            "b5": "Update PIN Try Counter",
+            "b4": "Set Go Online on Next Transaction",
+            "b3": "CSU Created by Proxy for the Issuer"
+          },
+          "bit_pairs": {
+            "b2_b1": {
+              "00": "Do Not Update Offline Counters",
+              "01": "Set Offline Counters to Upper Offline Limits",
+              "10": "Reset Offline Counters to Zero",
+              "11": "Add Transaction to Offline Counter"
+            }
+          }
+        },
+        "3": {
+          "name": "CSU Byte 3",
+          "exact_values": {
+            "00": "RFU"
+          }
+        },
+        "4": {
+          "name": "CSU Byte 4",
+          "full_byte": "Issuer-Discretionary"
+        }
+      },
+      "notes": [
+        "The CSU is 4 bytes long.",
+        "The 'CSU Created by Proxy for the Issuer' bit shall be set if and only if the CSU is generated by a proxy for the Issuer.",
+        "The default value for issuer-discretionary data in the CSU is zero."
+      ]
+    },
+    "CVR": {
+      "aliases": [
+        "CVR",
+        "Card Verification Results",
+        "CCD CVR"
+      ],
+      "tag": null,
+      "type": "mixed",
+      "length_bytes": 5,
+      "source": {
+        "book": "Book 3",
+        "section": "C9.3",
+        "title": "Card Verification Results for Format Code A",
+        "table": "Table CCD 10",
+        "page": 222
+      },
+      "bytes": {
+        "1": {
+          "name": "CVR Byte 1",
+          "bit_pairs": {
+            "b8_b7": {
+              "00": "Second GENERATE AC returned AAC",
+              "01": "Second GENERATE AC returned TC",
+              "10": "Second GENERATE AC not requested",
+              "11": "RFU"
+            },
+            "b6_b5": {
+              "00": "First GENERATE AC returned AAC",
+              "01": "First GENERATE AC returned TC",
+              "10": "First GENERATE AC returned ARQC",
+              "11": "RFU"
+            }
+          },
+          "bits": {
+            "b4": "CDA Performed",
+            "b3": "Offline DDA Performed",
+            "b2": "Issuer Authentication Not Performed",
+            "b1": "Issuer Authentication Failed"
+          }
+        },
+        "2": {
+          "name": "CVR Byte 2",
+          "low_nibble": "Low Order Nibble of PIN Try Counter",
+          "bits": {
+            "b4": "Offline PIN Verification Performed",
+            "b3": "Offline PIN Verification Performed and PIN Not Successfully Verified",
+            "b2": "PIN Try Limit Exceeded",
+            "b1": "Last Online Transaction Not Completed"
+          }
+        },
+        "3": {
+          "name": "CVR Byte 3",
+          "bits": {
+            "b8": "Lower Offline Transaction Count Limit Exceeded",
+            "b7": "Upper Offline Transaction Count Limit Exceeded",
+            "b6": "Lower Cumulative Offline Amount Limit Exceeded",
+            "b5": "Upper Cumulative Offline Amount Limit Exceeded",
+            "b4": "Issuer-discretionary bit 1",
+            "b3": "Issuer-discretionary bit 2",
+            "b2": "Issuer-discretionary bit 3",
+            "b1": "Issuer-discretionary bit 4"
+          }
+        },
+        "4": {
+          "name": "CVR Byte 4",
+          "high_nibble": "Number of Successfully Processed Issuer Script Commands Containing Secure Messaging",
+          "bits": {
+            "b4": "Issuer Script Processing Failed",
+            "b3": "Offline Data Authentication Failed on Previous Transaction",
+            "b2": "Go Online on Next Transaction Was Set",
+            "b1": "Unable to go Online"
+          }
+        },
+        "5": {
+          "name": "CVR Byte 5",
+          "bits": {
+            "b8": "RFU - shall be 0",
+            "b7": "RFU - shall be 0",
+            "b6": "RFU - shall be 0",
+            "b5": "RFU - shall be 0",
+            "b4": "RFU - shall be 0",
+            "b3": "RFU - shall be 0",
+            "b2": "RFU - shall be 0",
+            "b1": "RFU - shall be 0"
+          }
+        }
+      }
+    },
+    "READ RECORD Command Message": {
+      "aliases": [
+        "READ RECORD Command Message",
+        "READ RECORD C-APDU",
+        "READ RECORD APDU",
+        "READ RECORD",
+        "INS B2"
+      ],
+      "tag": null,
+      "type": "command_apdu",
+      "length_bytes": null,
+      "source": {
+        "book": "Book 1",
+        "section": "11.2.2",
+        "title": "READ RECORD Command Message",
+        "table": "Table 3",
+        "page": 42
+      },
+      "command": {
+        "CLA": {
+          "values": {
+            "00": "Class byte for READ RECORD command"
+          }
+        },
+        "INS": {
+          "values": {
+            "B2": "Instruction code for READ RECORD"
+          }
+        },
+        "P1": {
+          "meaning": "Record number"
+        },
+        "P2": {
+          "ref": "READ RECORD Reference Control Parameter"
+        },
+        "Lc": {
+          "meaning": "Not present"
+        },
+        "Data": {
+          "meaning": "Not present"
+        },
+        "Le": {
+          "values": {
+            "00": "Maximum number of data bytes expected; used for READ RECORD during application selection"
+          }
+        }
+      }
+    },
+    "READ RECORD Reference Control Parameter": {
+      "aliases": [
+        "READ RECORD Reference Control Parameter",
+        "READ RECORD P2",
+        "READ RECORD P2 parameter",
+        "Table 4"
+      ],
+      "tag": null,
+      "type": "mixed",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 1",
+        "section": "11.2.2",
+        "title": "READ RECORD Command Reference Control Parameter",
+        "table": "Table 4",
+        "page": 42
+      },
+      "bytes": {
+        "1": {
+          "name": "READ RECORD P2 Reference Control Parameter",
+          "bit_fields": {
+            "b8_b7_b6_b5_b4": "Short File Identifier (SFI)",
+            "b3_b2_b1": "Must be '100', meaning P1 is a record number"
+          },
+          "bit_patterns": {
+            "b3_b2_b1": {
+              "100": "P1 is a record number"
+            }
+          },
+          "notes": [
+            "b8-b4 contain the SFI.",
+            "b3-b1 are coded as 100."
+          ]
+        }
+      }
+    },
+    "SELECT Command Message": {
+      "aliases": [
+        "SELECT Command Message",
+        "SELECT C-APDU",
+        "SELECT APDU",
+        "SELECT",
+        "INS A4"
+      ],
+      "tag": null,
+      "type": "command_apdu",
+      "length_bytes": null,
+      "source": {
+        "book": "Book 1",
+        "section": "11.3.2",
+        "title": "SELECT Command Message",
+        "table": "Table 5",
+        "page": 43
+      },
+      "command": {
+        "CLA": {
+          "values": {
+            "00": "Class byte for SELECT command"
+          }
+        },
+        "INS": {
+          "values": {
+            "A4": "Instruction code for SELECT"
+          }
+        },
+        "P1": {
+          "ref": "SELECT Command Reference Control Parameter"
+        },
+        "P2": {
+          "ref": "SELECT Command Options Parameter"
+        },
+        "Lc": {
+          "ranges": [
+            {
+              "start": "05",
+              "end": "10",
+              "meaning": "Length of file name in SELECT command"
+            }
+          ]
+        },
+        "Data": {
+          "meaning": "File name"
+        },
+        "Le": {
+          "values": {
+            "00": "Maximum number of data bytes expected"
+          }
+        }
+      }
+    },
+    "SELECT Command Reference Control Parameter": {
+      "aliases": [
+        "SELECT Command Reference Control Parameter",
+        "SELECT P1",
+        "SELECT P1 parameter",
+        "Table 6"
+      ],
+      "tag": null,
+      "type": "value_map",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 1",
+        "section": "11.3.2",
+        "title": "SELECT Command Reference Control Parameter",
+        "table": "Table 6",
+        "page": 44
+      },
+      "values": {
+        "04": "Select by name"
+      },
+      "bytes": {
+        "1": {
+          "name": "SELECT P1 Reference Control Parameter",
+          "bit_patterns": {
+            "b8_b7_b6_b5_b4": {
+              "00000": "RFU / fixed to zero in this table"
+            },
+            "b3": {
+              "1": "Select by name"
+            },
+            "b2_b1": {
+              "00": "Fixed to zero in this table"
+            }
+          }
+        }
+      }
+    },
+    "SELECT Command Options Parameter": {
+      "aliases": [
+        "SELECT Command Options Parameter",
+        "SELECT P2",
+        "SELECT P2 parameter",
+        "Table 7"
+      ],
+      "tag": null,
+      "type": "value_map",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 1",
+        "section": "11.3.2",
+        "title": "SELECT Command Options Parameter",
+        "table": "Table 7",
+        "page": 44
+      },
+      "values": {
+        "00": "First or only occurrence",
+        "02": "Next occurrence"
+      },
+      "bytes": {
+        "1": {
+          "name": "SELECT P2 Selection Options",
+          "bit_patterns": {
+            "b2_b1": {
+              "00": "First or only occurrence",
+              "10": "Next occurrence"
+            }
+          }
+        }
+      }
+    },
+    "Short File Identifier": {
+      "aliases": [
+        "Short File Identifier",
+        "SFI",
+        "tag 88",
+        "88"
+      ],
+      "tag": "88",
+      "type": "value_map",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 1",
+        "section": "Annex B / B1",
+        "title": "Short File Identifier (SFI)",
+        "table": "Table 14",
+        "page": 72
+      },
+      "ranges": [
+        {
+          "start": "01",
+          "end": "1E",
+          "meaning": "Valid SFI value in the range 1 to 30"
+        }
+      ],
+      "bytes": {
+        "1": {
+          "name": "Short File Identifier",
+          "bit_fields": {
+            "b8_b7_b6": "High-order bits set to zero",
+            "b5_b4_b3_b2_b1": "SFI value, range 1 to 30"
+          }
+        }
+      },
+      "notes": [
+        "Book 1 defines SFI as a binary data object having a value in the range 1 to 30 and with the three high order bits set to zero."
+      ]
+    },
+    "Book 1 Application Selection Status Words": {
+      "aliases": [
+        "Book 1 Status Words",
+        "Application Selection Status Words",
+        "SELECT status words",
+        "READ RECORD status words"
+      ],
+      "tag": null,
+      "type": "value_map",
+      "length_bytes": 2,
+      "source": {
+        "book": "Book 1",
+        "section": "11.2.5 / 11.3.5 / 12.3",
+        "title": "Processing State Returned in the Response Message / Application Selection",
+        "table": null,
+        "page": "42, 47, 55-59"
+      },
+      "values": {
+        "9000": "Successful execution of the command",
+        "6A81": "Card blocked or SELECT command not supported during application selection; terminal terminates the session in the specified cases",
+        "6A82": "File not found / no PSE found / no further matching DF after repeated partial name SELECT",
+        "6283": "PSE or application blocked; application selection continues using the specified fallback handling",
+        "6A83": "Record not found / requested record number does not exist"
+      },
+      "ranges": [
+        {
+          "start": "6200",
+          "end": "62FF",
+          "meaning": "Status accepted during SELECT NEXT handling in the List of AIDs method"
+        },
+        {
+          "start": "6300",
+          "end": "63FF",
+          "meaning": "Status accepted during SELECT NEXT handling in the List of AIDs method"
+        }
+      ]
+    },
+    "Application Selection Registered Proprietary Data": {
+      "aliases": [
+        "Application Selection Registered Proprietary Data",
+        "ASRPD",
+        "tag 9F0A",
+        "9F0A"
+      ],
+      "tag": "9F0A",
+      "type": "tlv_sequence",
+      "length_bytes": null,
+      "source": {
+        "book": "Book 1",
+        "section": "12.5",
+        "title": "Application Selection Registered Proprietary Data",
+        "table": null,
+        "page": 64
+      },
+      "sequence": [
+        {
+          "name": "ID",
+          "length_bytes": 2,
+          "meaning": "Proprietary Data Identifier registered by EMVCo"
+        },
+        {
+          "name": "L",
+          "length_bytes": 1,
+          "meaning": "Length of the value field, coded in one byte from 0 to 255"
+        },
+        {
+          "name": "V",
+          "length_bytes": "variable",
+          "meaning": "Proprietary value field; content is proprietary and outside the scope of EMVCo"
+        }
+      ],
+      "notes": [
+        "The ASRPD value field is formatted as ID1, L1, V1, ID2, L2, V2, ...",
+        "If not correctly formatted, application selection ignores this ASRPD instance.",
+        "Unrecognised Proprietary Data Identifiers are ignored."
+      ]
+    },
+    "Payment System Directory Record Format": {
+      "aliases": [
+        "Payment System Directory Record Format",
+        "Directory Record Format",
+        "tag 70 record",
+        "Table 11"
+      ],
+      "tag": "70",
+      "type": "tlv_template",
+      "length_bytes": null,
+      "source": {
+        "book": "Book 1",
+        "section": "12.2.3",
+        "title": "Payment System Directory Record Format",
+        "table": "Table 11",
+        "page": 51
+      },
+      "template": {
+        "70": "READ RECORD Response Message Template / Payment System Directory Record",
+        "61": "Application Template containing an ADF directory entry"
+      },
+      "notes": [
+        "The value field of tag '70' contains one or more Application Templates with tag '61'.",
+        "Payment System Directory records shall not contain entries for DDFs."
+      ]
+    },
+    "ADF Directory Entry Format": {
+      "aliases": [
+        "ADF Directory Entry Format",
+        "Application Directory Entry",
+        "Application Template 61",
+        "tag 61 directory entry",
+        "Table 12"
+      ],
+      "tag": "61",
+      "type": "tlv_template",
+      "length_bytes": null,
+      "source": {
+        "book": "Book 1",
+        "section": "12.2.3",
+        "title": "ADF Directory Entry Format",
+        "table": "Table 12",
+        "page": 52
+      },
+      "template": {
+        "4F": "ADF Name - mandatory",
+        "50": "Application Label - mandatory",
+        "9F12": "Application Preferred Name - optional",
+        "87": "Application Priority Indicator - optional",
+        "73": "Directory Discretionary Template - optional",
+        "9F0A": "Application Selection Registered Proprietary Data - optional",
+        "XXXX": "Additional proprietary or EMV-defined data elements allocated to template '73' - optional"
+      }
+    },
+    "DDF Directory Entry Format": {
+      "aliases": [
+        "DDF Directory Entry Format",
+        "DDF Directory Entry",
+        "Table 16"
+      ],
+      "tag": null,
+      "type": "tlv_template",
+      "length_bytes": null,
+      "source": {
+        "book": "Book 1",
+        "section": "Annex C4",
+        "title": "Example of a DDF Directory Entry Format",
+        "table": "Table 16",
+        "page": 77
+      },
+      "template": {
+        "9D": "DDF Name - mandatory",
+        "73": "Directory Discretionary Template - optional",
+        "XXXX": "Additional proprietary or EMV-defined data elements allocated to template '73' - optional"
+      }
+    },
+    "BER-TLV Tag Field First Byte": {
+      "aliases": [
+        "BER-TLV Tag First Byte",
+        "BER-TLV first byte",
+        "Tag Field Structure First Byte",
+        "BER Tag Class",
+        "BER-TLV Tag Field Structure first byte",
+        "BER-TLV",
+        "BERTLV",
+        "BER TLV"
+      ],
+      "tag": null,
+      "type": "mixed",
+      "length_bytes": 2,
+      "source": {
+        "book": "Book 3",
+        "section": "Annex B1",
+        "title": "Coding of the Tag Field of BER-TLV Data Objects",
+        "table": "Table 39",
+        "page": 169
+      },
+      "bytes": {
+        "1": {
+          "name": "Tag Field Structure - First Byte BER-TLV",
+          "bit_pairs": {
+            "b8_b7": {
+              "00": "Universal class",
+              "01": "Application class",
+              "10": "Context-specific class",
+              "11": "Private class"
+            }
+          },
+          "bits": {
+            "b6": {
+              "0": "Primitive data object",
+              "1": "Constructed data object"
+            }
+          },
+          "bit_ranges": {
+            "b5_b4_b3_b2_b1": [
+              {
+                "start": "00000",
+                "end": "11110",
+                "meaning": "Tag number"
+              },              
+              {
+                "start": "11111",
+                "end": "11111",
+                "meaning": "The tag number continues in subsequent bytes"
+              }
+            ]
+          },
+          "notes": [
+            "b8-b7 identify the BER-TLV tag class.",
+            "b6 identifies primitive versus constructed object.",
+            "b5-b1 equal 11111 means the tag number continues in subsequent bytes; any other value less than 11111 is the tag number."
+          ]
+        },        
+        "2": {
+          "name": "Tag Field Structure - Subsequent Byte BER-TLV",
+          "ranges": [
+            {
+              "start": "01",
+              "end": "7F",
+              "meaning": "Last tag byte; b7-b1 are part of tag number and must be greater than 0"
+            },
+            {
+              "start": "81",
+              "end": "FF",
+              "meaning": "Another byte follows; b7-b1 are part of tag number and must be greater than 0"
+            }
+          ],
+          "notes": [
+            "b8 indicates whether another tag byte follows.",
+            "b7-b1 form part of the tag number and have any value greater than 0."
+          ]
+        }
+      }
+      
+    },
+    "BER-TLV Tag Field Subsequent Byte": {
+      "aliases": [
+        "BER-TLV Subsequent Byte",
+        "BER-TLV tag subsequent byte",
+        "BER Tag Continuation Byte",
+        "Tag Field Structure Subsequent Bytes",
+        "Table 40"
+      ],
+      "tag": null,
+      "type": "mixed",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 3",
+        "section": "Annex B1",
+        "title": "Coding of the Tag Field of BER-TLV Data Objects",
+        "table": "Table 40",
+        "page": 169
+      },
+      "bytes": {
+        "1": {
+          "name": "Tag Field Structure - Subsequent Byte BER-TLV",
+          "bits": {
+            "b8": {
+              "1": "Another byte follows",
+              "0": "Last tag byte"
+            }
+          },
+          "bit_fields": {
+            "b7_b6_b5_b4_b3_b2_b1": "Part of tag number"
+          },
+          "ranges": [
+            {
+              "start": "01",
+              "end": "7F",
+              "meaning": "Last tag byte; b7-b1 are part of tag number and must be greater than 0"
+            },
+            {
+              "start": "81",
+              "end": "FF",
+              "meaning": "Another byte follows; b7-b1 are part of tag number and must be greater than 0"
+            }
+          ],
+          "notes": [
+            "b8 indicates whether another tag byte follows.",
+            "b7-b1 form part of the tag number and have any value greater than 0."
+          ]
+        }
+      }
+    },
+    "VERIFY Command Qualifier P2": {
+      "aliases": [
+        "VERIFY P2",
+        "VERIFY Command Qualifier",
+        "VERIFY Command Qualifier of Reference Data",
+        "Reference Data Qualifier",
+        "VERIFY reference data qualifier",
+        "Table 24"
+      ],
+      "tag": null,
+      "type": "mixed",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 3",
+        "section": "6.5.12",
+        "title": "VERIFY Command Qualifier of Reference Data (P2)",
+        "table": "Table 24",
+        "page": 72
+      },
+      "values": {
+        "00": "As defined in ISO/IEC 7816-4",
+        "80": "Plaintext PIN, format as defined below",
+        "84": "Enciphered PIN (RSA), format as defined in Book 2 section 7",
+        "85": "Enciphered Biometric (RSA), format as defined in Book 2 section 7",
+        "86": "Enciphered PIN (ECC), format as defined in Book 2 section 13",
+        "87": "Enciphered Biometric (ECC), format as defined in Book 2 section 13"
+      },
+      "masked_values": [
+        {
+          "mask": "F8",
+          "value": "80",
+          "exclude": [
+            "80",
+            "84",
+            "85",
+            "86",
+            "87"
+          ],
+          "meaning": "RFU for this specification"
+        },
+        {
+          "mask": "FC",
+          "value": "8C",
+          "meaning": "RFU for the individual payment systems"
+        },
+        {
+          "mask": "F0",
+          "value": "90",
+          "meaning": "RFU for the issuer"
+        }
+      ],
+      "bytes": {
+        "1": {
+          "name": "VERIFY P2 Qualifier of Reference Data",
+          "exact_values": {
+            "00": "As defined in ISO/IEC 7816-4",
+            "80": "Plaintext PIN, format as defined below",
+            "84": "Enciphered PIN (RSA), format as defined in Book 2 section 7",
+            "85": "Enciphered Biometric (RSA), format as defined in Book 2 section 7",
+            "86": "Enciphered PIN (ECC), format as defined in Book 2 section 13",
+            "87": "Enciphered Biometric (ECC), format as defined in Book 2 section 13"
+          },
+          "bit_patterns": {
+            "10000xxx": "RFU for this specification, except explicitly assigned values 80, 84, 85, 86, and 87",
+            "100011xx": "RFU for the individual payment systems",
+            "1001xxxx": "RFU for the issuer"
+          }
+        }
+      }
+    },
+    "GENERATE AC Reference Control Parameter": {
+      "aliases": [
+        "GENERATE AC P1",
+        "GENERATE AC Reference Control Parameter",
+        "Generate AC Reference Control",
+        "Cryptogram Information Data Request",
+        "GENERATE AC command reference control parameter",
+        "Table 12"
+      ],
+      "tag": null,
+      "type": "mixed",
+      "length_bytes": 1,
+      "source": {
+        "book": "Book 3",
+        "section": "6.5.5.2",
+        "title": "GENERATE AC Reference Control Parameter",
+        "table": "Table 12",
+        "page": 57
+      },
+      "bytes": {
+        "1": {
+          "name": "GENERATE AC Reference Control Parameter",
+          "bit_pairs": {
+            "b8_b7": {
+              "00": "AAC requested",
+              "01": "TC requested",
+              "10": "ARQC requested",
+              "11": "RFU"
+            },
+            "b6_b5": {
+              "00": "No CDA/XDA signature requested",
+              "10": "CDA signature requested",
+              "01": "XDA signature requested",
+              "11": "RFU"
+            }
+          },
+          "bit_fields": {
+            "b4_b3_b2_b1": "RFU"
+          },
+          "notes": [
+            "b8-b7 encode the requested cryptogram type.",
+            "b6-b5 encode whether CDA or XDA signature is requested.",
+            "b4-b1 are RFU."
+          ]
+        }
+      }
+    }
+  },
+  "_requested_terms_covered": [
+    "ADF Directory Entry Format",
+    "AIP",
+    "AUC",
+    "Additional Terminal Capabilities",
+    "Application Priority Indicator",
+    "Application Selection Registered Proprietary Data",
+    "Authorisation Response Code",
+    "Biometric Terminal Capabilities",
+    "Book 1 Application Selection Status Words",
+    "CID",
+    "CSU",
+    "CV Rule",
+    "CVM Codes",
+    "CVM Condition Codes",
+    "CVM Results",
+    "DDF Directory Entry Format",
+    "IAC Default",
+    "IAC Denial",
+    "IAC Online",
+    "Issuer Script Results",
+    "Payment System Directory Record Format",
+    "READ RECORD Command Message",
+    "READ RECORD Reference Control Parameter",
+    "SELECT Command Message",
+    "SELECT Command Options Parameter",
+    "SELECT Command Reference Control Parameter",
+    "Short File Identifier",
+    "Status Words SW1 SW2",
+    "TAC Default",
+    "TAC Denial",
+    "TAC Online",
+    "TSI",
+    "TVR",
+    "Terminal Capabilities",
+    "Terminal Type",
+    "Transaction Type",
+    "BER-TLV Tag Field First Byte",
+    "BER-TLV Tag Field Subsequent Byte",
+    "VERIFY Command Qualifier P2",
+    "GENERATE AC Reference Control Parameter"
+  ]
+}
