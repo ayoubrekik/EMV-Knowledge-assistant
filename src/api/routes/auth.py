@@ -13,44 +13,6 @@ from src.core.auth import get_current_user
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@router.post("/register")
-def register(
-    username: str,
-    email: str,
-    password: str,
-    role: str,
-    db: Session = Depends(get_db),
-):
-    existing_user = (
-        db.query(User)
-        .filter((User.username == username) | (User.email == email))
-        .first()
-    )
-
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Username or email already exists")
-
-    user = User(
-        id=uuid.uuid4(),
-        username=username,
-        email=email,
-        password_hash=hash_password(password),
-        role=role,
-        is_active=True,
-    )
-
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    return {
-        "message": "User registered successfully",
-        "user_id": str(user.id),
-        "username": user.username,
-        "role": user.role,
-    }
-
-
 @router.post("/login")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
