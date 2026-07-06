@@ -44,6 +44,7 @@ openai>=1.35.3
 # API
 fastapi>=0.111.0
 uvicorn==0.30.1
+starlette==0.50.0
 
 # Notebook
 jupyter==1.0.0
@@ -51,6 +52,7 @@ ipykernel==6.29.4
 
 # Docling
 docling
+docling-ibm-models
 
 #postgres
 sqlalchemy>=2.0
@@ -61,3 +63,19 @@ passlib[bcrypt]
 bcrypt==4.0.1
 python-jose[cryptography]
 python-multipart
+email-validator
+
+fitz
+
+#speech to text
+faster-whisper
+python-multipart
+piper-tts
+tools
+frontend
+
+# docker compose exec api pip install faster-whisper python-multipart "python-jose[cryptography]" email-validator "sqlalchemy>=2.0" psycopg2-binary rank-bm25 passlib[bcrypt] gtts fitz frontend tools
+# docker compose exec api pip install "bcrypt==4.0.1" piper-tts
+# docker compose exec api pip install "starlette==0.50.0"
+# for evaluation
+#docker compose exec api pip install ragas datasets
