@@ -51,9 +51,9 @@ class RagMetadata(Base):
 
     retrieved_chunks_count = Column(Integer, default=0)
 
-    best_distance = Column(Double, nullable=True)
-    average_distance = Column(Double, nullable=True)
-    worst_distance = Column(Double, nullable=True)
+    best_relevance = Column(Double, nullable=True)
+    average_relevance = Column(Double, nullable=True)
+    worst_relevance = Column(Double, nullable=True)
 
     router_time_seconds = Column(Double, nullable=True)
     retrieval_time_seconds = Column(Double, nullable=True)

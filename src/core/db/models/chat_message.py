@@ -31,7 +31,8 @@ class ChatMessage(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
-
+    input_type = Column(String(50), nullable=True)
+    
     role = Column(String(20), nullable=False)
     content = Column(Text, nullable=False)
 
