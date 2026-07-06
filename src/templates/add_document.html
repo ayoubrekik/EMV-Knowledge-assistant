@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Document</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', path='img/icon.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/add_document.css') }}">
+</head>
+
+<body>
+  <div class="add-page">
+    <div class="add-card">
+      <div class="add-icon">
+        <i class="fa-solid fa-file-circle-plus"></i>
+      </div>
+
+      <h1>Add PDF Document</h1>
+      <p>Upload a PDF document to extract, process, and generate the latest chunks.</p>
+
+      <form id="addDocumentForm" enctype="multipart/form-data">
+        <label class="file-zone" for="pdf_file" id="dropZone">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span id="fileLabel">Choose a PDF file</span>
+          <small id="fileHint">Only PDF files are accepted</small>
+        </label>
+
+        <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" required hidden>
+
+        <button class="upload-btn" type="submit" id="uploadBtn">Upload and process</button>
+
+        <button class="cancel-btn" type="button" id="cancelBtn" style="display:none;">
+          <i class="fa-solid fa-xmark"></i>
+          Cancel
+        </button>
+        <button class="embed-btn" type="button" id="embedBtn" style="display:none;">
+          <i class="fa-solid fa-database"></i>
+          Embed and save
+        </button>
+      </form>
+
+      <div id="result"></div>
+
+      <button class="back-btn" type="button" onclick="window.location.href='/admin'">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to chat
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const resultBox = document.getElementById("result");
+    const fileInput = document.getElementById("pdf_file");
+    const fileLabel = document.getElementById("fileLabel");
+    const fileHint = document.getElementById("fileHint");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const dropZone = document.getElementById("dropZone");
+    const embedBtn = document.getElementById("embedBtn");
+
+    let currentChunksPath = null;
+    let currentJobId = null;
+    let uploadController = null;
+    let statusInterval = null;
+    let isProcessing = false;
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+
+      if (file) {
+        setSelectedFile(file);
+      } else {
+        fileLabel.textContent = "Choose a PDF file";
+        fileHint.style.display = "block";
+      }
+    });
+    ["dragenter", "dragover"].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add("drag-over");
+      });
+    });
+
+    ["dragleave", "drop"].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove("drag-over");
+      });
+    });
+
+    dropZone.addEventListener("drop", (e) => {
+      const file = e.dataTransfer.files[0];
+
+      if (!file) return;
+
+      setSelectedFile(file);
+    });
+    function setSelectedFile(file) {
+      if (!file) return;
+
+      if (file.type !== "application/pdf") {
+        alert("Only PDF files are allowed.");
+        return;
+      }
+
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      fileInput.files = dataTransfer.files;
+
+      fileLabel.textContent = file.name;
+      fileHint.style.display = "none";
+    }
+    function renderStatus(data) {
+      resultBox.innerHTML = `
+        <div class="status-box">
+          <strong>${data.step}</strong>
+          <p>${data.message}</p>
+
+          <div class="progress-track">
+            <div class="progress-fill" style="width:${data.progress || 0}%;">
+              ${data.progress || 0}%
+            </div>
+          </div>
+
+          ${data.chunks_count ? `<div class="chunks-count"><strong>Chunks:</strong> ${data.chunks_count}</div>` : ""}
+        </div>
+      `;
+    }
+
+    async function pollStatus(jobId, token) {
+      statusInterval = setInterval(async () => {
+        const response = await fetch(`/documents/status/${jobId}`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+        renderStatus(data);
+
+        if (data.status === "done") {
+          clearInterval(statusInterval);
+          statusInterval = null;
+
+          isProcessing = false;
+          uploadBtn.disabled = false;
+          uploadBtn.style.display = "none";
+          cancelBtn.style.display = "none";
+          embedBtn.style.display = "flex";
+          if (data.chunks_path) {
+            currentChunksPath = data.chunks_path;
+          }
+        }
+
+        if (data.status === "error") {
+          clearInterval(statusInterval);
+          statusInterval = null;
+
+          isProcessing = false;
+          uploadBtn.disabled = false;
+          uploadBtn.style.display = "flex";
+          cancelBtn.style.display = "none";
+          embedBtn.style.display = "none";
+
+          resultBox.innerHTML = `
+    <div class="error-box">
+      <strong>Processing failed</strong>
+      <p>${data.message}</p>
+    </div>
+  `;
+        }
+
+      }, 3000);
+    }
+
+    document.getElementById("addDocumentForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const token = sessionStorage.getItem("access_token");
+
+      if (!token) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("Please select a PDF file.");
+        return;
+      }
+
+      if (file.type !== "application/pdf") {
+        alert("Only PDF files are allowed.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("pdf_file", file);
+
+      renderStatus({
+        step: "Uploading",
+        progress: 5,
+        message: "Sending PDF to server..."
+      });
+      isProcessing = true;
+      uploadBtn.disabled = true;
+      uploadBtn.style.display = "none";
+      cancelBtn.style.display = "flex";
+
+      uploadController = new AbortController();
+      const response = await fetch("/documents/upload", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+        body: formData,
+        signal: uploadController.signal
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        sessionStorage.removeItem("access_token");
+        sessionStorage.removeItem("user");
+        window.location.href = "/login";
+        return;
+      }
+
+      const result = await response.json();
+      if (result.already_chunked && result.needs_embedding) {
+        currentChunksPath = result.chunks_path;
+
+        isProcessing = false;
+        uploadBtn.disabled = false;
+        uploadBtn.style.display = "none";
+        cancelBtn.style.display = "none";
+        embedBtn.style.display = "flex";
+
+        resultBox.innerHTML = `
+    <div class="success-box">
+      <strong>Chunks already exist</strong>
+      <p>${result.message}</p>
+    </div>
+  `;
+
+        return;
+      }
+
+      if (result.already_exists) {
+        isProcessing = false;
+        uploadBtn.disabled = false;
+        uploadBtn.style.display = "flex";
+        cancelBtn.style.display = "none";
+        embedBtn.style.display = "none";
+
+        resultBox.innerHTML = `
+    <div class="error-box">
+      <strong>Document already exists</strong>
+      <p>${result.message}</p>
+    </div>
+  `;
+
+        return;
+      }
+      currentJobId = result.job_id;
+      if (!response.ok) {
+        resultBox.innerHTML = `
+          <div class="error-box">
+            ${result.detail || "Upload failed."}
+          </div>
+        `;
+        return;
+      }
+
+      renderStatus({
+        step: "Upload done",
+        progress: 10,
+        message: "PDF uploaded. Processing started..."
+      });
+
+      pollStatus(result.job_id, token);
+    });
+    cancelBtn.addEventListener("click", async () => {
+      const token = sessionStorage.getItem("access_token");
+
+      if (currentJobId) {
+        await fetch(`/documents/cancel/${currentJobId}`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+      }
+
+      if (uploadController) {
+        uploadController.abort();
+      }
+
+      if (statusInterval) {
+        clearInterval(statusInterval);
+        statusInterval = null;
+      }
+
+      isProcessing = false;
+      uploadBtn.disabled = false;
+      uploadBtn.style.display = "flex";
+      uploadBtn.innerText = "Upload and process";
+      cancelBtn.style.display = "none";
+
+      resultBox.innerHTML = `
+    <div class="error-box">
+      <strong>Cancelled</strong>
+      <p>Document processing was cancelled.</p>
+    </div>
+  `;
+    });
+
+
+    embedBtn.addEventListener("click", async () => {
+      const token = sessionStorage.getItem("access_token");
+
+      if (!token) {
+        window.location.href = "/login";
+        return;
+      }
+
+      embedBtn.disabled = true;
+
+      resultBox.innerHTML = `
+    <div class="status-box">
+      <strong>Embedding...</strong>
+      <p>Generating embeddings and saving chunks in Chroma.</p>
+    </div>
+  `;
+
+      try {
+        if (!currentChunksPath) {
+          resultBox.innerHTML = `
+    <div class="error-box">
+      <strong>No chunks path found</strong>
+      <p>Please process or select an existing chunk file first.</p>
+    </div>
+  `;
+          embedBtn.disabled = false;
+          return;
+        }
+        const response = await fetch("/settings/embed-chunks", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            chunks_path: currentChunksPath
+          })
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          sessionStorage.removeItem("access_token");
+          sessionStorage.removeItem("user");
+          window.location.href = "/login";
+          return;
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+          resultBox.innerHTML = `
+        <div class="error-box">
+          <strong>Embedding failed</strong>
+          <p>${result.message}</p>
+        </div>
+      `;
+          embedBtn.disabled = false;
+          return;
+        }
+
+        resultBox.innerHTML = `
+      <div class="success-box">
+        <strong>Saved successfully</strong>
+        <p>
+          Chunks embedded and saved in Chroma.<br>
+          <b>Inserted chunks:</b> ${result.inserted_chunks}
+        </p>
+      </div>
+    `;
+
+        embedBtn.style.display = "none";
+
+      } catch (error) {
+        console.error(error);
+
+        resultBox.innerHTML = `
+      <div class="error-box">
+        <strong>Server error</strong>
+        <p>Failed to contact the server.</p>
+      </div>
+    `;
+
+        embedBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+
+</html>
