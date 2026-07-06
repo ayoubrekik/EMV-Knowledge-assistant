@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Delete Book</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', path='img/icon.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/delete_document.css') }}">
+</head>
+
+<body>
+  <div class="delete-page">
+    <div class="delete-card">
+      <div class="delete-icon">
+        <i class="fa-solid fa-trash"></i>
+      </div>
+
+      <h1>Delete Book</h1>
+      <p>Remove all chunks associated with a specific EMV book version.</p>
+
+      <div class="books-panel">
+        <div class="books-panel-header">
+          <strong>Existing documents</strong>
+          <span id="booksCount">Loading...</span>
+        </div>
+
+        <div class="books-table-wrap">
+          <table class="books-table">
+            <thead>
+              <tr>
+                <th>Book</th>
+                <th>Title</th>
+                <th>Version</th>
+                <th>Date</th>
+                <th>Chunks</th>
+                <th></th>
+              </tr>
+            </thead>
+
+            <tbody id="booksList">
+              <tr>
+                <td colspan="6" class="book-empty">Loading documents...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="result"></div>
+
+      <button class="back-btn" type="button" onclick="window.location.href='/admin'">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to chat
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(value) {
+      const div = document.createElement("div");
+      div.textContent = value ?? "";
+      return div.innerHTML;
+    }
+    
+    async function loadExistingBooks() {
+      const token = sessionStorage.getItem("access_token");
+
+      if (!token) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const booksList = document.getElementById("booksList");
+      const booksCount = document.getElementById("booksCount");
+
+      try {
+        const response = await fetch("/settings/books", {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          sessionStorage.removeItem("access_token");
+          sessionStorage.removeItem("user");
+          window.location.href = "/login";
+          return;
+        }
+
+        const data = await response.json();
+
+        if (!data.success || !data.books.length) {
+          booksCount.textContent = "0 documents";
+          booksList.innerHTML = `
+        <tr>
+          <td colspan="5" class="book-empty">No documents found in Chroma.</td>
+        </tr>
+      `;
+          return;
+        }
+
+        booksCount.textContent = `${data.books_count} documents`;
+
+        booksList.innerHTML = data.books.map(book => `
+      <tr>
+        <td>${escapeHtml(book.doc_id)}</td>
+        <td>${escapeHtml(book.doc_title || "N/A")}</td>
+        <td>${escapeHtml(book.doc_version || "N/A")}</td>
+        <td>${escapeHtml(book.doc_date || "N/A")}</td>
+        <td>${escapeHtml(book.chunks_count)}</td>
+        <td>
+          <button
+            class="table-delete-btn"
+            type="button"
+            title="Delete document"
+            onclick="deleteBookFromTable(
+              '${escapeHtml(book.doc_id)}',
+              '${escapeHtml(book.doc_version || "")}',
+              '${escapeHtml(book.doc_date || "")}'
+            )">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `).join("");
+
+      } catch (error) {
+        console.error(error);
+
+        booksCount.textContent = "Error";
+        booksList.innerHTML = `
+      <tr>
+        <td colspan="5" class="book-empty">Failed to load documents.</td>
+      </tr>
+    `;
+      }
+    }
+    async function deleteBookFromTable(docId, version, docDate) {
+      const token = sessionStorage.getItem("access_token");
+
+      if (!token) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const confirmed = confirm(
+        `Delete this document?\n\n` +
+        `Book: ${docId}\n` +
+        `Version: ${version}\n` +
+        `Date: ${docDate}`
+      );
+
+      if (!confirmed) return;
+
+      document.getElementById("result").innerHTML = `
+    <div class="status-box">
+      <strong>Deleting...</strong>
+      <p>Deleting ${docId} version ${version}.</p>
+    </div>
+  `;
+
+      try {
+        const response = await fetch("/settings/delete-book", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            doc_id: docId,
+            doc_version: version,
+            doc_date: docDate
+          })
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          sessionStorage.removeItem("access_token");
+          sessionStorage.removeItem("user");
+          window.location.href = "/login";
+          return;
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+          document.getElementById("result").innerHTML = `
+        <div class="error-box">
+          <strong>No matching document found</strong>
+          <p>${result.message || "No chunks were deleted."}</p>
+        </div>
+      `;
+          return;
+        }
+
+        document.getElementById("result").innerHTML = `
+      <div class="success-box">
+        <strong>Book deleted successfully</strong>
+        <p>
+          <b>Document ID:</b> ${docId}<br>
+          <b>Version:</b> ${version}<br>
+          <b>Date:</b> ${docDate}<br>
+          <b>Deleted Chunks:</b> ${result.deleted_chunks || 0}
+        </p>
+      </div>
+    `;
+
+        await loadExistingBooks();
+
+      } catch (error) {
+        console.error(error);
+
+        document.getElementById("result").innerHTML = `
+      <div class="error-box">
+        <strong>Server error</strong>
+        <p>Failed to contact the server.</p>
+      </div>
+    `;
+      }
+    }
+    document.addEventListener("DOMContentLoaded", loadExistingBooks);
+  </script>
+</body>
+
+</html>
