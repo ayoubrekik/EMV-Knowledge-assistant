@@ -74,6 +74,23 @@ services:
     volumes:
       - ./src/storage/postgres:/var/lib/postgresql/data
 
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ./src/storage/models/ollama:/root/.ollama
+  #   restart: unless-stopped
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
+
+
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -89,3 +106,14 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+
+    # entrypoint: ["/bin/bash", "-c"]
+    # command: >
+    #   "
+    #   ollama serve &
+    #   (
+    #     sleep 10 &&
+    #     ollama run qwen3:8b 'warmup'
+    #   ) &
+    #   wait
+    #   "
