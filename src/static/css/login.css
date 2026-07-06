@@ -8,7 +8,7 @@
   --line: #dbeafe;
   --white: #ffffff;
   --soft-blue: #eff6ff;
-  --shadow: 0 20px 50px rgba(37, 99, 235, 0.14);
+  --shadow: 0 24px 70px rgba(37, 99, 235, 0.16);
 }
 
 * {
@@ -17,109 +17,114 @@
   padding: 0;
 }
 
+html,
 body {
+  width: 100%;
   min-height: 100vh;
+}
+
+body {
   font-family: "Inter", sans-serif;
-  background: var(--app-bg);
   color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.26), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.14), transparent 34%),
+    linear-gradient(135deg, #f8fbff 0%, #edf6ff 100%);
 }
 
 .login-page {
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
 }
 
-.login-left {
-  padding: 48px;
-  background:
-    radial-gradient(circle at top left, rgba(56, 189, 248, 0.35), transparent 35%),
-    linear-gradient(135deg, #eff6ff, #dbeafe);
+.login-card {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 32px;
+  padding: 48px 38px 50px;
+  box-shadow: var(--shadow);
+}
+
+.logos-row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 30px;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .brand img {
-  width: 54px;
-  height: 54px;
+  width: 52px;
+  height: 52px;
   border-radius: 16px;
-  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.2);
+  object-fit: contain;
+  background: white;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16);
 }
 
 .brand h1 {
-  font-size: 24px;
+  font-size: 28px;
+  line-height: 1;
   font-weight: 800;
   color: var(--primary-dark);
 }
 
 .brand p {
+  margin-top: 4px;
   color: var(--muted);
   font-size: 14px;
 }
 
-.hero-content {
-  max-width: 560px;
+.telnet-logo {
+  width: 170px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 28px;
 }
 
 .badge {
   display: inline-block;
-  background: white;
+  background: var(--soft-blue);
   color: var(--primary-dark);
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 8px 14px;
   font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 22px;
-}
-
-.hero-content h2 {
-  font-size: 48px;
-  line-height: 1.1;
-  color: var(--primary-dark);
+  font-weight: 800;
   margin-bottom: 18px;
 }
 
-.hero-content p {
-  color: #334155;
-  font-size: 17px;
-  line-height: 1.7;
-}
-
-.login-right {
-  display: grid;
-  place-items: center;
-  padding: 32px;
-}
-
-.login-card {
-  width: min(430px, 100%);
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: 28px;
-  padding: 36px;
-  box-shadow: var(--shadow);
-}
-
-.form-header {
-  margin-bottom: 28px;
-}
-
 .form-header h2 {
-  font-size: 30px;
+  font-size: 34px;
+  line-height: 1.1;
   color: var(--primary-dark);
   margin-bottom: 8px;
+  letter-spacing: -0.03em;
 }
 
 .form-header p {
   color: var(--muted);
+  font-size: 15px;
 }
 
 .input-group {
@@ -135,18 +140,27 @@ body {
 }
 
 .input-box {
-  height: 54px;
+  height: 56px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 0 16px;
   background: #f8fbff;
+  transition: 0.2s ease;
+}
+
+.input-box:focus-within {
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
 }
 
 .input-box i {
   color: var(--primary);
+  width: 18px;
+  text-align: center;
 }
 
 .input-box input {
@@ -163,6 +177,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin: 8px 0 24px;
   font-size: 14px;
   color: var(--muted);
@@ -178,24 +193,31 @@ body {
 .register-text a {
   color: var(--primary);
   text-decoration: none;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .login-btn {
   width: 100%;
-  height: 54px;
+  height: 56px;
   border: none;
   border-radius: 18px;
   background: linear-gradient(135deg, var(--primary), var(--accent));
   color: white;
   font-weight: 800;
-  font-size: 16px;
+  font-size: 17px;
+  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   cursor: pointer;
-  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.28);
+  box-shadow: 0 16px 32px rgba(37, 99, 235, 0.28);
+  transition: 0.2s ease;
+}
+
+.login-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 38px rgba(37, 99, 235, 0.34);
 }
 
 .register-text {
@@ -204,17 +226,42 @@ body {
   margin-top: 22px;
   font-size: 14px;
 }
+.password-toggle{
+    cursor: pointer;
+    color: var(--muted);
+    margin-left: auto;
+    transition: 0.2s;
+}
 
-@media (max-width: 900px) {
-  .login-page {
-    grid-template-columns: 1fr;
+.password-toggle:hover{
+    color: var(--primary);
+}
+@media (max-width: 800px) {
+  .login-card {
+    padding: 26px 22px 30px;
+    border-radius: 26px;
   }
 
-  .login-left {
-    display: none;
+  .logos-row {
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
   }
 
-  .login-right {
-    min-height: 100vh;
+  .form-header h2 {
+    font-size: 28px;
+  }
+
+  .brand h1 {
+    font-size: 26px;
+  }
+
+  .telnet-logo {
+    width: 150px;
+  }
+
+  .form-options {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

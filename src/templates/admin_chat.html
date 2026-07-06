@@ -32,6 +32,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -46,12 +48,13 @@
       </div>
 
       <div class="new-chat-row">
-        <button class="new-chat-btn" type="button" onclick="newChat()">
-          ＋ New chat
-        </button>
 
-        <input type="text" class="conversation-search" id="conversationSearch" placeholder="Search..." />
+        <button class="new-chat-btn" type="button" onclick="newChat()">
+          <i class="fa-regular fa-pen-to-square"></i>
+          New chat
+        </button>
       </div>
+      <input type="text" class="conversation-search" id="conversationSearch" placeholder="Search..." />
 
       <div class="sidebar-title-row">
         <span>Your conversations</span>
@@ -62,9 +65,33 @@
       </div>
 
       <div class="sidebar-bottom">
-        <button class="bottom-btn" type="button"><i class="fa-solid fa-gear"></i> Settings</button>
+        <div class="settings-dropdown">
+          <button class="bottom-btn" type="button" id="settingsBtn">
+            <i class="fa-solid fa-gear"></i>
+            Settings
+            <i class="fa-solid fa-chevron-up dropdown-arrow"></i>
+          </button>
+
+          <div class="settings-menu" id="settingsMenu">
+            <button class="dropdown-item" onclick="window.location.href='/settings/manage-users'">
+              <i class="fa-solid fa-users-gear"></i>
+              Manage Users
+            </button>
+            <button class="dropdown-item" onclick="window.location.href='/settings/add-document'">
+              <i class="fa-solid fa-file-circle-plus"></i>
+              Add Document
+            </button>
+
+            <button class="dropdown-item" onclick="window.location.href='/settings/delete-document'">
+              <i class="fa-solid fa-trash"></i>
+              Delete Document
+            </button>
+          </div>
+        </div>
+
         <button class="bottom-btn" type="button" id="logoutBtn">
-          <i class="fas fa-sign-out-alt"></i> Logout
+          <i class="fas fa-sign-out-alt"></i>
+          Logout
         </button>
       </div>
     </aside>
@@ -78,22 +105,27 @@
             <span>Ask questions about your EMV specification knowledge base</span>
           </div>
         </div>
+
+        <button class="export-pdf-btn" type="button" onclick="exportChatToPDF()">
+          <i class="fa-solid fa-file-pdf"></i>
+          Export PDF
+        </button>
       </header>
 
       <div class="chat-area" id="chatScroll">
         <div class="message-row">
           <div class="avatar ai">AI</div>
-          <div class="message assistant">
-            Hello, ask me anything about your EMV specification knowledge base.
-          </div>
+          <div class="message assistant">Hello, ask me anything about your EMV specification knowledge base.</div>
         </div>
       </div>
 
       <div class="composer-wrap">
         <div class="composer">
-          <div class="composer-icon">+</div>
+          <!-- <div class="composer-icon" hidden>+</div> -->
+          <button id="micBtn" type="button" class="mic-btn"><i class="fa-solid fa-microphone"></i></button>
           <textarea id="promptInput" placeholder="Ask your EMV assistant..." rows="1"></textarea>
-          <button class="send-btn" type="button" onclick="sendMessage()">➤</button>
+          <button class="send-btn" type="button" onclick="sendMessage()"><i
+              class="fa-solid fa-paper-plane"></i></button>
         </div>
       </div>
 
@@ -102,9 +134,19 @@
   <script>
     const promptInput = document.getElementById("promptInput");
     const chatScroll = document.getElementById("chatScroll");
+    const micBtn = document.getElementById("micBtn");
+    const sendBtn = document.querySelector(".send-btn");
+    const exportPdfBtn = document.querySelector(".export-pdf-btn");
 
     let sessionId = crypto.randomUUID();
     let currentChatHasTitle = false;
+    let mediaRecorder;
+    let currentAudio = null;
+    let currentButton = null;
+    let audioChunks = [];
+    let lastQuestion = null;
+    let allowRegenerate = false;
+    let isStreaming = false;
 
     function fillPrompt(text) {
       promptInput.value = text;
@@ -117,25 +159,89 @@
       return div.innerHTML;
     }
 
-    
 
-function addChatToHistory(chat) {
-  const conversationList = document.getElementById("conversationList");
+    function renderThinkingStep(bubble, title, subtitle) {
+      bubble.classList.add("thinking-bubble");
 
-  document.querySelectorAll(".conversation-item").forEach(item => {
-    item.classList.remove("active");
-  });
+      bubble.innerHTML = `
+    <div class="thinking-card">
+      <div class="thinking-dot"></div>
+      <div class="thinking-text">
+        <strong>${escapeHtml(title)}</strong>
+        <span>${escapeHtml(subtitle)}</span>
+      </div>
+    </div>
+  `;
+    }
 
-  const item = document.createElement("button");
+    function setStreamingState(streaming) {
+      isStreaming = streaming;
 
-  item.className = "conversation-item active";
-  item.type = "button";
+      sendBtn.disabled = streaming;
+      micBtn.disabled = streaming;
+      exportPdfBtn.disabled = streaming;
 
-  item.dataset.sessionId = chat.session_id;
+      document.querySelectorAll(".speak-btn").forEach(btn => {
+        btn.disabled = streaming;
+      });
 
-  const title = chat.title || "New Chat";
+      document.querySelectorAll(".regenerate-btn").forEach(btn => {
+        btn.style.display = "none";
+        btn.disabled = streaming;
+      });
 
-  item.innerHTML = `
+      if (streaming) {
+        sendBtn.classList.add("disabled-btn");
+        micBtn.classList.add("disabled-btn");
+        exportPdfBtn.classList.add("disabled-btn");
+      } else {
+        sendBtn.classList.remove("disabled-btn");
+        micBtn.classList.remove("disabled-btn");
+        exportPdfBtn.classList.remove("disabled-btn");
+      }
+    }
+
+    function updateRegenerateButtons() {
+      const regenerateButtons = document.querySelectorAll(".regenerate-btn");
+
+      regenerateButtons.forEach(btn => {
+        btn.style.display = "none";
+      });
+
+      if (!allowRegenerate) return;
+
+      const assistantRows = [...document.querySelectorAll(".message-row:not(.metadata-row)")].filter(row => {
+        return row.querySelector(".message.assistant");
+      });
+
+      const lastAssistantRow = assistantRows[assistantRows.length - 1];
+
+      if (!lastAssistantRow) return;
+
+      const lastRegenerateBtn = lastAssistantRow.querySelector(".regenerate-btn");
+
+      if (lastRegenerateBtn) {
+        lastRegenerateBtn.style.display = "flex";
+      }
+    }
+
+    function addChatToHistory(chat) {
+      const conversationList = document.getElementById("conversationList");
+
+      document.querySelectorAll(".conversation-item").forEach(item => {
+        item.classList.remove("active");
+      });
+
+      const item = document.createElement("button");
+
+      item.className = "conversation-item active";
+      item.type = "button";
+
+      item.dataset.sessionId = chat.session_id;
+
+      const title = chat.title || "New Chat";
+
+      item.innerHTML = `
 
     <span class="conversation-text">
       ${escapeHtml(title)}
@@ -148,36 +254,20 @@ function addChatToHistory(chat) {
     <span class="active-dot"></span>
   `;
 
-  item.addEventListener("click", function () {
-    setActiveChat(chat.session_id);
-  });
-
-  conversationList.prepend(item);
-}
-
-    function newChat() {
-      sessionId = crypto.randomUUID();
-      currentChatHasTitle = false;
-
-      document.querySelectorAll(".conversation-item").forEach(item => {
-        item.classList.remove("active");
+      item.addEventListener("click", function () {
+        setActiveChat(chat.session_id);
       });
 
-      chatScroll.innerHTML = `
-      <div class="message-row">
-        <div class="avatar ai">AI</div>
-        <div class="message assistant">
-          Hello, ask me anything about your EMV specification knowledge base.
-        </div>
-      </div>
-    `;
+      conversationList.prepend(item);
+    }
 
-      promptInput.value = "";
-      promptInput.focus();
+    function newChat() {
+      window.location.reload();
     }
 
     async function loadSessions() {
       const token = sessionStorage.getItem("access_token");
+
       console.log("TOKEN FOR SESSIONS =", token);
 
       if (!token) {
@@ -247,13 +337,27 @@ function addChatToHistory(chat) {
 
           await loadSessions();
         });
+        conversationSearch.addEventListener("input", () => {
+          const searchValue = conversationSearch.value.toLowerCase().trim();
 
+          document.querySelectorAll(".conversation-item").forEach(item => {
+            const title = item.querySelector(".conversation-text")?.textContent || "";
+
+            if (title.toLowerCase().includes(searchValue)) {
+              item.style.display = "flex";
+            } else {
+              item.style.display = "none";
+            }
+          });
+        });
         conversationList.appendChild(item);
       });
     }
 
 
     async function loadConversation(targetSessionId) {
+      allowRegenerate = false;
+      lastQuestion = null;
       const token = sessionStorage.getItem("access_token");
       const response = await fetch(`/chat/sessions/${targetSessionId}/messages`, {
         headers: {
@@ -278,35 +382,53 @@ function addChatToHistory(chat) {
           row.innerHTML = `
       <div class="message user">${escapeHtml(message.content)}</div>
       <div class="avatar user">U</div>
-    `;
+               `;
 
           chatScroll.appendChild(row);
 
         } else {
           row.className = "message-row";
+          row.className = "message-row";
           row.innerHTML = `
-      <div class="avatar ai">AI</div>
-      <div class="message assistant">${formatResponse(message.content)}</div>
-    `;
+                 <div class="avatar ai">AI</div>
+
+                    <div class="assistant-container">
+                      <div class="message assistant">${formatResponse(message.content)}</div>
+
+                      <button class="speak-btn" type="button">
+                        <i class="fa-solid fa-volume-high"></i>
+                      </button>
+                        <button class="regenerate-btn" type="button" style="display:none;">
+                              <i class="fa-solid fa-rotate-right"></i>
+                          </button>
+                    </div>
+                  `;
 
           chatScroll.appendChild(row);
+
+          const speakBtn = row.querySelector(".speak-btn");
+          speakBtn.style.display = "flex";
+          speakBtn.addEventListener("click", () => {
+            speakAssistantMessage(message.content, speakBtn);
+          });
+
 
           if (message.metadata) {
             const metadataRow = document.createElement("div");
             metadataRow.className = "message-row metadata-row";
 
             metadataRow.innerHTML = `
-        <div class="avatar ai">AI</div>
-        <div class="message assistant metadata-bubble">
-          ${formatSourcesAndMetrics(message.metadata)}
-        </div>
-      `;
+                <div class="avatar ai">AI</div>
+                <div class="message assistant metadata-bubble">
+                  ${formatSourcesAndMetrics(message.metadata)}
+                </div>
+              `;
 
             chatScroll.appendChild(metadataRow);
           }
         }
       });
-
+      updateRegenerateButtons();
       chatScroll.scrollTop = chatScroll.scrollHeight;
     }
 
@@ -319,6 +441,7 @@ function addChatToHistory(chat) {
       });
 
       await loadConversation(targetSessionId);
+      updateRegenerateButtons();
     }
 
     function parseSSEBlock(block) {
@@ -342,131 +465,293 @@ function addChatToHistory(chat) {
         data: dataLines.join("\n"),
       };
     }
+    async function regenerateLastAnswer(button = null) {
+      if (isStreaming) return;
 
-async function sendMessage() {
-  const token = sessionStorage.getItem("access_token");
-  const question = promptInput.value.trim();
-  if (!question) return;
+      if (button) {
+        button.style.display = "none";
+      }
 
-  const userRow = document.createElement("div");
-  userRow.className = "message-row user";
-  userRow.innerHTML = `
+      allowRegenerate = false;
+      updateRegenerateButtons();
+
+      if (!lastQuestion) return;
+
+      promptInput.value = lastQuestion;
+      await sendMessage(true);
+    }
+    async function speakAssistantMessage(text, button) {
+
+      // If this message is already being read, stop it
+      if (currentAudio && currentButton === button) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+
+        button.innerHTML = `<i class="fa-solid fa-volume-high"></i>`;
+
+        currentAudio = null;
+        currentButton = null;
+
+        return;
+      }
+
+      // Stop previous audio if another message is speaking
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+
+        if (currentButton) {
+          currentButton.innerHTML = `<i class="fa-solid fa-volume-high"></i>`;
+        }
+      }
+
+      try {
+
+        button.innerHTML = `<i class="fa-solid fa-hourglass-half"></i>`;
+        button.disabled = true;
+
+        const response = await fetch("/voice/tts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            text: text,
+            language: "en",
+            slow: false
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.audio_url) {
+          alert(data.detail || "Text to speech failed");
+          return;
+        }
+
+        currentAudio = new Audio(data.audio_url);
+        currentButton = button;
+        button.disabled = false;
+        // Change icon to stop
+        button.innerHTML = `<i class="fa-solid fa-stop"></i>`;
+
+        currentAudio.onended = () => {
+
+          button.disabled = false;
+          button.innerHTML = `<i class="fa-solid fa-volume-high"></i>`;
+
+          currentAudio = null;
+          currentButton = null;
+        };
+
+        currentAudio.onerror = () => {
+
+          button.disabled = false;
+          button.innerHTML = `<i class="fa-solid fa-volume-high"></i>`;
+
+          currentAudio = null;
+          currentButton = null;
+        };
+
+        currentAudio.play();
+
+      } catch (err) {
+        console.error(err);
+
+        button.disabled = false;
+        button.innerHTML = `<i class="fa-solid fa-volume-high"></i>`;
+
+        currentAudio = null;
+        currentButton = null;
+      }
+    }
+    async function sendMessage(isRegenerate = false) {
+      if (isStreaming) return;
+
+      const token = sessionStorage.getItem("access_token");
+      const question = promptInput.value.trim();
+
+      if (!question) return;
+
+      setStreamingState(true);
+
+      lastQuestion = question;
+      allowRegenerate = true;
+
+      const userRow = document.createElement("div");
+      userRow.className = "message-row user";
+      userRow.innerHTML = `
     <div class="message user">${escapeHtml(question)}</div>
     <div class="avatar user">U</div>
   `;
-  chatScroll.appendChild(userRow);
+      chatScroll.appendChild(userRow);
 
-  promptInput.value = "";
+      promptInput.value = "";
 
-  const aiRow = document.createElement("div");
-  aiRow.className = "message-row";
-  aiRow.innerHTML = `
-    <div class="avatar ai">AI</div>
-    <div class="message assistant"></div>
-  `;
-  chatScroll.appendChild(aiRow);
+      const aiRow = document.createElement("div");
+      aiRow.className = "message-row";
 
-  const assistantBubble = aiRow.querySelector(".message.assistant");
-  assistantBubble.textContent = "Thinking...";
-  chatScroll.scrollTop = chatScroll.scrollHeight;
+      aiRow.innerHTML = `
+  <div class="avatar ai">AI</div>
 
-  try {
-    const response = await fetch("/chat/stream", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        question: question,
-        session_id: sessionId,
-      }),
-    });
+  <div class="assistant-container">
 
-    if (!response.ok || !response.body) {
-      assistantBubble.textContent = "Server error while generating the answer.";
-      return;
-    }
+      <div class="message assistant"></div>
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
+      <button class="speak-btn" type="button">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
 
-    let assistantMessage = "";
-    let buffer = "";
+                <button class="regenerate-btn" type="button" style="display:none;">
+            <i class="fa-solid fa-rotate-right"></i>
+        </button>
 
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
+  </div>
+`;
 
-      buffer += decoder.decode(value, { stream: true });
+      chatScroll.appendChild(aiRow);
 
-      const blocks = buffer.split("\n\n");
-      buffer = blocks.pop();
+      const assistantBubble = aiRow.querySelector(".message.assistant");
+      const speakBtn = aiRow.querySelector(".speak-btn");
+      speakBtn.style.display = "none";
+      const regenerateBtn = aiRow.querySelector(".regenerate-btn");
+      speakBtn.style.display = "none";
+      regenerateBtn.style.display = "none";
+      regenerateBtn.addEventListener("click", () => {
+        regenerateLastAnswer(regenerateBtn);
+      });
+      let assistantMessage = "";
 
-      for (const block of blocks) {
-        if (!block.trim()) continue;
+      speakBtn.addEventListener("click", () => {
+        speakAssistantMessage(assistantMessage, speakBtn);
+      });
 
-        const { eventType, data } = parseSSEBlock(block);
+      renderThinkingStep(
+        assistantBubble,
+        "Understanding your question...",
+        "Preparing the request and checking conversation context."
+      );
+      chatScroll.scrollTop = chatScroll.scrollHeight;
 
-        if (eventType === "session") {
-          const sessionData = JSON.parse(data);
+      try {
+        const response = await fetch("/chat/stream", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            question: question,
+            session_id: sessionId,
+            regenerate: isRegenerate,
+          }),
+        });
 
-          sessionId = sessionData.session_id;
-
-          if (!currentChatHasTitle) {
-            addChatToHistory({
-              session_id: sessionData.session_id,
-              title: sessionData.title
-            });
-
-            currentChatHasTitle = true;
-          }
+        if (!response.ok || !response.body) {
+          assistantBubble.textContent = "Server error while generating the answer.";
+          setStreamingState(false);
+          return;
         }
 
-        if (eventType === "token") {
-          assistantBubble.textContent = "";
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
 
-          const token = JSON.parse(data);
-          assistantMessage += token;
 
-          assistantBubble.innerHTML = formatResponse(assistantMessage);
-          chatScroll.scrollTop = chatScroll.scrollHeight;
-        }
+        let buffer = "";
 
-        if (eventType === "metadata") {
-          const metadata = JSON.parse(data);
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
 
-          const metadataRow = document.createElement("div");
-          metadataRow.className = "message-row metadata-row";
+          buffer += decoder.decode(value, { stream: true });
 
-          metadataRow.innerHTML = `
+          const blocks = buffer.split("\n\n");
+          buffer = blocks.pop();
+
+          for (const block of blocks) {
+            if (!block.trim()) continue;
+
+            const { eventType, data } = parseSSEBlock(block);
+
+            if (eventType === "session") {
+              renderThinkingStep(
+                assistantBubble,
+                "Preparing answer...",
+                "Creating or updating the chat session."
+              );
+              const sessionData = JSON.parse(data);
+
+              sessionId = sessionData.session_id;
+
+              if (!currentChatHasTitle) {
+                addChatToHistory({
+                  session_id: sessionData.session_id,
+                  title: sessionData.title
+                });
+
+                currentChatHasTitle = true;
+              }
+            }
+            if (eventType === "status") {
+              const status = JSON.parse(data);
+
+              renderThinkingStep(
+                assistantBubble,
+                status.title,
+                status.message
+              );
+
+              chatScroll.scrollTop = chatScroll.scrollHeight;
+            }
+            if (eventType === "token") {
+              assistantBubble.classList.remove("thinking-bubble");
+              assistantBubble.textContent = "";
+
+              const token = JSON.parse(data);
+              assistantMessage += token;
+
+              assistantBubble.innerHTML = formatResponse(assistantMessage);
+              chatScroll.scrollTop = chatScroll.scrollHeight;
+            }
+
+            if (eventType === "metadata") {
+              const metadata = JSON.parse(data);
+
+              const metadataRow = document.createElement("div");
+              metadataRow.className = "message-row metadata-row";
+
+              metadataRow.innerHTML = `
             <div class="avatar ai">AI</div>
             <div class="message assistant metadata-bubble">
               ${formatSourcesAndMetrics(metadata)}
             </div>
           `;
 
-          chatScroll.appendChild(metadataRow);
-          chatScroll.scrollTop = chatScroll.scrollHeight;
-        }
+              chatScroll.appendChild(metadataRow);
+              chatScroll.scrollTop = chatScroll.scrollHeight;
+            }
 
-        if (eventType === "done") {
-          await loadSessions();
-          return;
+            if (eventType === "done") {
+              speakBtn.style.display = "flex";
+              setStreamingState(false);
+              await loadSessions();
+              updateRegenerateButtons();
+              return;
+            }
+          }
         }
+      } catch (error) {
+        console.error(error);
+        assistantBubble.textContent = "Could not connect to the server.";
+        setStreamingState(false);
       }
     }
-  } catch (error) {
-    console.error(error);
-    assistantBubble.textContent = "Could not connect to the server.";
-  }
+
+function formatResponse(text) {
+  if (!text) return "";
+
+  return marked.parse(text);
 }
-
-    function formatResponse(text) {
-      if (!text) return "";
-
-      return escapeHtml(text).replace(/\n/g, "<br>");
-    }
 
     function formatSourcesAndMetrics(metadata) {
       if (!metadata) return "";
@@ -478,13 +763,12 @@ async function sendMessage() {
       <strong>Retrieval details</strong>
 
       <div class="metrics-grid">
-        <div><span>hex_breakdown : </span><b>${escapeHtml(metadata.hex_breakdown)}</b></div>
         <div><span>Original question : </span><b>${escapeHtml(metadata.original_question)}</b></div>
         <div><span>rewriten question : </span><b>${escapeHtml(metadata.standalone_question)}</b></div>
         <div><span>Retrieved chunks = </span><b>${escapeHtml(metrics.retrieved_chunks_count)}</b></div>
-        <div><span>Best distance = </span><b>${formatNumber(metrics.best_distance)}</b></div>
-        <div><span>Average distance = </span><b>${formatNumber(metrics.average_distance)}</b></div>
-        <div><span>Worst distance = </span><b>${formatNumber(metrics.worst_distance)}</b></div>
+        <div><span>Best relevance = </span><b>${formatNumber(metrics.best_relevance)}%</b></div>
+        <div><span>Average relevance = </span><b>${formatNumber(metrics.average_relevance)}%</b></div>
+        <div><span>Worst relevance = </span><b>${formatNumber(metrics.worst_relevance)}%</b></div>
         <div><span>Retrieval time = </span><b>${formatNumber(metrics.retrieval_time_seconds)}s</b></div>
         <div><span>Generation time = </span><b>${formatNumber(metrics.generation_time_seconds)}s</b></div>
         <div><span>Router time = </span><b>${formatNumber(metrics.router_time_seconds)}s</b></div>
@@ -492,25 +776,40 @@ async function sendMessage() {
 
       </div>
 
-      ${sources.length ? `
-        <div class="sources">
-          <strong>Sources</strong>
-          <ul>
-${sources.map(source => `
-  <li>${escapeHtml(source.doc_id)} | Section ${escapeHtml(source.section_number)} | ${escapeHtml(source.title)} | page ${escapeHtml(source.page)}</li>
-`).join("")}
-          </ul>
-        </div>
-      ` : ""}
+       ${sources.length ? `
+         <div class="sources">
+           <strong>Sources</strong>
+           <ul>
+ ${sources.map(source => `
+   <li>${escapeHtml(source.doc_id)} | Section ${escapeHtml(source.section)} | page ${escapeHtml(source.page)}</li>
+ `).join("")}
+           </ul>
+         </div>
+       ` : ""}
     </div>
   `;
     }
+    // should be put before the las t div
+
 
     function formatNumber(value) {
       if (value === null || value === undefined || value === "") return "N/A";
       if (typeof value !== "number") return escapeHtml(value);
-      return value.toFixed(3);
+      return value.toFixed(2);
     }
+    promptInput.addEventListener("input", () => {
+      promptInput.style.height = "auto";
+
+      const maxHeight = 144; // ≈ 6 lines
+
+      if (promptInput.scrollHeight < maxHeight) {
+        promptInput.style.height = promptInput.scrollHeight + "px";
+        promptInput.style.overflowY = "hidden";
+      } else {
+        promptInput.style.height = maxHeight + "px";
+        promptInput.style.overflowY = "auto";
+      }
+    });
 
     promptInput.addEventListener("keydown", function (event) {
       if (event.key === "Enter" && !event.shiftKey) {
@@ -529,7 +828,162 @@ ${sources.map(source => `
       window.location.href = "/login";
     });
     document.addEventListener("DOMContentLoaded", loadSessions);
+    const settingsBtn = document.getElementById("settingsBtn");
+    const settingsMenu = document.getElementById("settingsMenu");
 
+    const settingsArrow = settingsBtn.querySelector(".dropdown-arrow");
+
+    settingsBtn.addEventListener("click", () => {
+      settingsMenu.classList.toggle("show");
+      settingsArrow.classList.toggle("open");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (
+        !settingsBtn.contains(e.target) &&
+        !settingsMenu.contains(e.target)
+      ) {
+        settingsMenu.classList.remove("show");
+        settingsArrow.classList.remove("open");
+      }
+    });
+
+
+    micBtn.addEventListener("click", async () => {
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+
+        // waiting for STT result
+        micBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        micBtn.disabled = true;
+
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      const options = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? { mimeType: "audio/webm;codecs=opus" }
+        : {};
+
+      mediaRecorder = new MediaRecorder(stream, options);
+
+      audioChunks = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        try {
+          const audioBlob = new Blob(audioChunks, {
+            type: "audio/webm;codecs=opus"
+          });
+
+          const formData = new FormData();
+          formData.append("audio", audioBlob, "voice.webm");
+
+          const response = await fetch("/voice/transcribe", {
+            method: "POST",
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (data.success && data.transcript) {
+            promptInput.value = data.transcript;
+            promptInput.dispatchEvent(new Event("input"));
+          } else {
+            alert(data.detail || data.error || "No transcript returned");
+          }
+
+        } catch (error) {
+          console.error(error);
+          alert("Speech recognition failed");
+
+        } finally {
+          stream.getTracks().forEach(track => track.stop());
+
+          micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+          micBtn.disabled = false;
+        }
+      };
+
+      mediaRecorder.start();
+      micBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
+    });
+    function cleanPdfText(text) {
+      return text
+        .replace(/→|⇒|➜|➡/g, ":")
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'")
+        .replace(/\u00A0/g, " ")
+        .replace(/[^\x00-\x7F]/g, "")
+        .replace(/[ \t]+/g, " ")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    }
+
+    function exportChatToPDF() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 15;
+      const maxWidth = pageWidth - margin * 2;
+
+      let y = 20;
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(16);
+      pdf.text("Chat Export", margin, y);
+      y += 12;
+
+      const rows = document.querySelectorAll(".message-row:not(.metadata-row)");
+
+      rows.forEach(row => {
+        const isUser = row.classList.contains("user");
+        const message = row.querySelector(".message");
+
+        if (!message) return;
+
+        const label = isUser ? "Question:" : "Response:";
+        const text = cleanPdfText(message.innerText);
+        pdf.setCharSpace(0);
+
+        if (!text) return;
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(12);
+
+        if (y > 270) {
+          pdf.addPage();
+          y = 20;
+        }
+
+        pdf.text(label, margin, y);
+        y += 7;
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(11);
+
+        const lines = pdf.splitTextToSize(text, maxWidth);
+
+        lines.forEach(line => {
+          if (y > 280) {
+            pdf.addPage();
+            y = 20;
+          }
+
+          pdf.text(line, margin, y);
+          y += 6;
+        });
+
+        y += 6;
+      });
+
+      pdf.save("chat_export.pdf");
+    }
   </script>
 </body>
 

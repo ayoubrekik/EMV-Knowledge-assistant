@@ -104,23 +104,38 @@ button {
   margin-bottom: 26px;
 }
 
+
+
 .new-chat-btn {
-  border: none;
-  height: 44px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: white;
-  font-weight: 700;
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.25);
+  width: 234px;
+  height: 50px;
+
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+
+  background: white;
+  color: var(--primary-dark);
+
+  font-size: 15px;
+  font-weight: 600;
+  padding-left: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  gap: 8px;
+
+  cursor: pointer;
+
+  transition: all .2s ease;
+}
+.new-chat-btn i {
+  font-size: 14px;
 }
 
-.search-btn {
-  border: none;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--primary-dark);
-  color: white;
-  font-size: 18px;
+.new-chat-btn:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
 }
 
 .sidebar-title-row {
@@ -238,11 +253,14 @@ button {
   color: #334155;
   font-size: 13px;
 }
+
 .conversation-search {
   width: 100%;
   height: 44px;
   border: 1px solid var(--line);
   border-radius: 14px;
+  margin-bottom: 10px;
+  margin-top: -18px;
   padding: 0 14px;
   font-size: 13px;
   outline: none;
@@ -265,6 +283,7 @@ button {
   font-weight: 800;
   font-size: 12px;
 }
+
 .main {
   position: relative;
   height: 100vh;
@@ -326,7 +345,7 @@ button {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 24px 90px 130px 90px;
+  padding: 24px 90px 24px 90px;
   scroll-behavior: smooth;
 }
 
@@ -369,7 +388,7 @@ button {
 }
 
 .message-row {
-  max-width: 850px;
+  max-width: 1500px;
   margin: 0 auto 28px auto;
   display: flex;
   gap: 14px;
@@ -397,11 +416,15 @@ button {
 }
 
 .message {
-  max-width: 760px;
+  max-width: 1000px;
   line-height: 1.75;
+  /* 🧠 This is the great readable setting! */
   font-size: 14px;
   font-weight: 500;
   box-shadow: var(--shadow-soft);
+  text-align: left;
+  /* 👈 Changed from center to left */
+
 }
 
 .message.assistant {
@@ -409,9 +432,54 @@ button {
   border: 1px solid var(--line);
   color: #1f2937;
   border-radius: 22px 22px 22px 6px;
-  padding: 18px 20px;
-  white-space: pre-wrap;
-  line-height: 1.5;
+  padding: 25px 25px;
+  white-space: normal;
+  line-height: 1.45;
+  overflow-x: auto;
+  /* ❌ REMOVED line-height: 0.7; to stop the vertical overlap collapse */
+}
+.message.assistant p,
+.message.assistant ul,
+.message.assistant ol {
+  margin: 6px 0;
+}
+
+.message.assistant li {
+  margin: 2px 0;
+  padding-left: 0;
+}
+
+.message.assistant table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  margin: 10px 0;
+  table-layout: auto;
+}
+
+.message.assistant th,
+.message.assistant td {
+  border: 1px solid #d0d7de;
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.35;
+}
+
+.message.assistant th {
+  background: #f3f6fb;
+  font-weight: 700;
+}
+
+.message.assistant h1,
+.message.assistant h2,
+.message.assistant h3 {
+  margin: 0 0 8px;
+  line-height: 1.25;
+}
+
+.message.assistant blockquote {
+  margin: 8px 0;
 }
 
 .message.user {
@@ -424,6 +492,7 @@ button {
 .message p {
   margin-bottom: 12px;
 }
+
 .metadata-bubble,
 .metadata-bubble * {
   white-space: normal !important;
@@ -441,6 +510,7 @@ button {
   padding: 0 !important;
   margin-bottom: 6px !important;
 }
+
 .sender {
   color: var(--primary);
   font-size: 11px;
@@ -483,11 +553,63 @@ button {
   margin-bottom: 4px;
 }
 
+
+.assistant-actions{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+
+    padding:0;
+    margin:0;
+
+    align-self:stretch;   /* same height as response box */
+
+    flex-shrink:0;
+}
+.speak-btn,
+.regenerate-btn{
+    width:36px;
+    height:36px;
+
+    border:none;
+    border-radius:50%;
+
+    background:transparent;
+    color:var(--primary);
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    cursor:pointer;
+    font-size:18px;
+
+    transition:.2s;
+    flex-shrink: 0;
+    position: absolute; /* 👈 Pulls them into absolute space */
+  right: 0;
+}
+/* 4. Lock Speak button to the top-right corner */
+.speak-btn {
+  top: 0;
+}
+
+/* 5. Lock Regenerate button to the bottom-right corner */
+.regenerate-btn {
+  bottom: 0;
+}
+
+.speak-btn:hover,
+.regenerate-btn:hover{
+    background:#eff6ff;
+    color:var(--primary-dark);
+}
+
+
 .composer-wrap {
-  position: absolute;
-  left: 90px;
-  right: 60px;
-  bottom: 28px;
+  flex-shrink: 0;
+  padding: 0px 60px 28px 90px;
+  background: var(--app-bg);
   z-index: 20;
 }
 
@@ -495,12 +617,32 @@ button {
   min-height: 58px;
   background: white;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 35px;
   box-shadow: 0 18px 35px rgba(37, 99, 235, 0.18);
   display: flex;
   align-items: center;
   padding: 8px 9px 8px 16px;
   gap: 12px;
+  
+}
+
+#promptInput{
+    flex:1;
+    border:none;
+    outline:none;
+    resize:none;
+    background:transparent;
+
+    font-size:15px;
+    line-height:1.5;
+
+    min-height:24px;
+    max-height:120px;
+
+    padding-top:8px;
+
+    padding-left:20px;
+    padding-right:12px;
 }
 
 .composer-icon {
@@ -512,6 +654,7 @@ button {
   background: #dbeafe;
   color: var(--primary-dark);
   flex-shrink: 0;
+  align-self: flex-end;
 }
 
 .composer textarea {
@@ -534,16 +677,66 @@ button {
 .send-btn {
   width: 44px;
   height: 44px;
+  color:#666;
+  padding-right:40px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: white;
-  font-size: 18px;
-  box-shadow: 0 10px 18px rgba(37, 99, 235, 0.28);
+  background: none;
+  font-size: 22px;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+.send-btn:hover{
+    color:black;
+}
+/* 1. Make the container a relative boundary and give it space on the right for the buttons */
+.assistant-container {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding-right: 48px; /* 👈 Creates a clean 48px lane on the right side so the bubble never hits the buttons */
+  box-sizing: border-box;
+}
+.disabled-btn,
+button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+  pointer-events:none;
+}
+.mic-btn{
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  color:#666;
+  font-size: 22px;
+  flex-shrink: 0;
+  align-self: flex-end;
 }
 
-.metadata-panel > strong,
-.sources > strong {
+.mic-btn:hover{
+    color:black;
+}
+.export-pdf-btn{
+  height:42px;
+    border: 1px solid #dbeafe;
+  border-radius: 18px;
+
+  background: white;
+  color: var(--primary-dark);
+
+  padding:0 16px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.export-pdf-btn:hover{
+    color:black;
+}
+.metadata-panel>strong,
+.sources>strong {
   display: block;
   margin-bottom: 10px;
   color: var(--primary-dark);
@@ -576,6 +769,120 @@ button {
   word-break: break-word;
 }
 
+.settings-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.settings-dropdown .bottom-btn {
+  width: 100%;
+}
+
+.settings-menu {
+  position: absolute;
+  bottom: 55px;
+  left: 0;
+  width: 100%;
+
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  z-index: 100;
+
+  /* Initially hidden */
+  opacity: 0;
+  transform: translateY(30px);
+  pointer-events: none;
+
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.settings-menu.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.dropdown-item {
+  width: 100%;
+  border: none;
+  background: white;
+  color: #334155;
+  padding: 12px 14px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.dropdown-item:hover {
+  background: var(--soft-blue);
+  color: var(--primary);
+}
+
+.dropdown-arrow {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(-180deg);
+}
+.message.assistant.thinking-bubble{
+    width: fit-content;
+    max-width: 420px;
+
+    padding: 12px 16px !important;
+
+    min-height: unset !important;
+    height: auto !important;
+
+    display: inline-flex;
+    align-items: center;
+
+    line-height: normal;
+}
+
+.thinking-card{
+    display:flex;
+    align-items:center;
+    gap:12px;
+
+    margin:0;
+    padding:0;
+}
+.thinking-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 6px rgba(37,99,235,.12); animation: pulseDot 1.2s infinite ease-in-out; flex-shrink: 0; }
+@keyframes pulseDot { 0%, 100% { transform: scale(.85); opacity: .6; } 50% { transform: scale(1.15); opacity: 1; } }
+.thinking-text{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+
+    margin:0;
+    padding:0;
+}
+
+.thinking-text strong{
+  display:block;
+  color:var(--primary-dark);
+  font-size:14px;
+  line-height:1.2;
+  margin:0 0 5px 0;
+}
+
+.thinking-text span{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.35;
+  margin:0;
+}
 
 @media (max-width: 1100px) {
   .app-shell {
