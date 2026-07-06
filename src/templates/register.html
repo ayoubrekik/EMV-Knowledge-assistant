@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<script>
+    const token = sessionStorage.getItem("access_token");
+    const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+
+    if (token) {
+        if (user.role === "user") {
+            window.location.replace("/user");
+        } else if (user.role === "admin") {
+            window.location.replace("/admin");
+        }
+    }
+</script>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Register | EMV AI Assistant</title>
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', path='img/icon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/register.css') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+    <main class="register-page">
+
+        <form class="register-card" id="registerForm">
+
+            <div class="logos-row">
+                <div class="brand">
+                    <img src="{{ url_for('static', path='img/icon.png') }}" alt="EMV AI Logo">
+
+                    <div>
+                        <h1>EMV AI</h1>
+                        <p>Knowledge Assistant</p>
+                    </div>
+                </div>
+
+                <img class="telnet-logo" src="{{ url_for('static', path='img/Logo_Telnet.png') }}" alt="Telnet Logo">
+            </div>
+
+            <div class="form-header">
+                <h2>Get started</h2>
+                <p>Create an account to access the EMV assistant</p>
+            </div>
+
+            <div class="input-group">
+                <div class="input-box">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="username" name="username" placeholder="Username" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-box">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="email" name="email" placeholder="Email" required>
+                </div>
+            </div>
+            <div class="input-group">
+<div class="input-box role-box">
+    <i class="fa-solid fa-user-shield"></i>
+
+    <select id="role" name="role" required>
+        <option value="" disabled selected>Role</option>
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+    </select>
+
+    <i class="fa-solid fa-chevron-down role-arrow"></i>
+</div>
+            </div>
+            <div class="input-group">
+                <div class="input-box">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="Password" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-box">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm password"
+                        required>
+                </div>
+            </div>
+
+            <button type="submit" class="register-btn">
+                Create account
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+            <p class="login-text">
+                Already have an account?
+                <a href="/login">Login</a>
+            </p>
+
+        </form>
+
+    </main>
+
+    <script>
+        const registerForm = document.getElementById("registerForm");
+
+        registerForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById("username").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const role = document.getElementById("role").value;
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match");
+                return;
+            }
+
+            try {
+                const response = await fetch("/auth/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        email: email,
+                        password: password,
+                        role: role
+                    }),
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    console.log("REGISTER ERROR:", data);
+
+                    if (Array.isArray(data.detail)) {
+                        alert(data.detail.map(err => `${err.loc.join(".")} : ${err.msg}`).join("\n"));
+                    } else {
+                        alert(data.detail || "Registration failed");
+                    }
+
+                    return;
+                }
+
+                alert("Account created successfully. You can now login.");
+                window.location.href = "/login";
+
+            } catch (error) {
+                console.error(error);
+                alert("Something went wrong");
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Manage Users</title>
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', path='img/icon.png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/manage_users.css') }}">
+</head>
+
+<body>
+    <div class="manage-page">
+        <div class="manage-card">
+
+            <div class="manage-icon">
+                <i class="fa-solid fa-users-gear"></i>
+            </div>
+
+            <h1>Manage Users</h1>
+            <p>View registered users and delete accounts when needed.</p>
+
+            <div class="users-panel">
+                <div class="users-panel-header">
+                    <strong>Existing users</strong>
+                    <span id="usersCount">Loading...</span>
+                </div>
+
+                <div class="users-table-wrap">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Created at</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="usersList">
+                            <tr>
+                                <td colspan="6" class="user-empty">Loading users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="result"></div>
+
+            <button class="back-btn" type="button" onclick="window.location.href='/admin'">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back to chat
+            </button>
+
+        </div>
+    </div>
+
+    <script>
+        function escapeHtml(value) {
+            const div = document.createElement("div");
+            div.textContent = value ?? "";
+            return div.innerHTML;
+        }
+
+        function formatDate(value) {
+            if (!value) return "N/A";
+
+            try {
+                return new Date(value).toLocaleString();
+            } catch {
+                return value;
+            }
+        }
+
+        async function loadUsers() {
+            const token = sessionStorage.getItem("access_token");
+            const currentUser = JSON.parse(sessionStorage.getItem("user") || "{}");
+
+            if (!token) {
+                window.location.href = "/login";
+                return;
+            }
+
+            const usersList = document.getElementById("usersList");
+            const usersCount = document.getElementById("usersCount");
+
+            try {
+                const response = await fetch("/settings/users", {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    sessionStorage.removeItem("access_token");
+                    sessionStorage.removeItem("user");
+                    window.location.href = "/login";
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (!data.success || !data.users.length) {
+                    usersCount.textContent = "0 users";
+                    usersList.innerHTML = `
+            <tr>
+              <td colspan="6" class="user-empty">No users found.</td>
+            </tr>
+          `;
+                    return;
+                }
+
+                usersCount.textContent = `${data.users_count} users`;
+
+                usersList.innerHTML = data.users.map(user => {
+
+                    const isCurrentUser = user.id === currentUser.id;
+
+                    return `
+    <tr class="${isCurrentUser ? "current-user-row" : ""}">
+
+      <td>
+        ${escapeHtml(user.username)}
+
+        ${isCurrentUser
+                            ? `
+              <span class="connected-badge">
+                <i class="fa-solid fa-circle"></i>
+                Connected
+              </span>
+            `
+                            : ""
+                        }
+      </td>
+
+      <td>${escapeHtml(user.email)}</td>
+
+      <td>
+        <span class="role-badge ${user.role === "admin" ? "admin-role" : "user-role"}">
+          ${escapeHtml(user.role)}
+        </span>
+      </td>
+
+
+      <td>${escapeHtml(formatDate(user.created_at))}</td>
+
+      <td>
+        ${isCurrentUser
+                            ? `
+              <button
+                class="table-delete-btn disabled-btn"
+                type="button"
+                disabled
+                title="Current connected user">
+                <i class="fa-solid fa-user-check"></i>
+              </button>
+            `
+                            : `
+              <button
+                class="table-delete-btn"
+                type="button"
+                title="Delete user"
+                onclick="deleteUser('${escapeHtml(user.id)}', '${escapeHtml(user.username)}')">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            `
+                        }
+      </td>
+
+    </tr>
+  `;
+
+                }).join("");
+
+            } catch (error) {
+                console.error(error);
+
+                usersCount.textContent = "Error";
+                usersList.innerHTML = `
+          <tr>
+            <td colspan="6" class="user-empty">Failed to load users.</td>
+          </tr>
+        `;
+            }
+        }
+
+        async function deleteUser(userId, username) {
+            const token = sessionStorage.getItem("access_token");
+
+            if (!token) {
+                window.location.href = "/login";
+                return;
+            }
+
+            const confirmed = confirm(
+                `Delete this user?\n\nUsername: ${username}`
+            );
+
+            if (!confirmed) return;
+
+            document.getElementById("result").innerHTML = `
+        <div class="status-box">
+          <strong>Deleting...</strong>
+          <p>Deleting user ${escapeHtml(username)}.</p>
+        </div>
+      `;
+
+            try {
+                const response = await fetch(`/settings/users/${userId}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    sessionStorage.removeItem("access_token");
+                    sessionStorage.removeItem("user");
+                    window.location.href = "/login";
+                    return;
+                }
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    document.getElementById("result").innerHTML = `
+            <div class="error-box">
+              <strong>Delete failed</strong>
+              <p>${escapeHtml(result.detail || result.message || "User could not be deleted.")}</p>
+            </div>
+          `;
+                    return;
+                }
+
+                document.getElementById("result").innerHTML = `
+          <div class="success-box">
+            <strong>User deleted successfully</strong>
+            <p>${escapeHtml(username)} has been removed.</p>
+          </div>
+        `;
+
+                await loadUsers();
+
+            } catch (error) {
+                console.error(error);
+
+                document.getElementById("result").innerHTML = `
+          <div class="error-box">
+            <strong>Server error</strong>
+            <p>Failed to contact the server.</p>
+          </div>
+        `;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadUsers);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,275 @@
+:root {
+  --app-bg: #f3f8ff;
+  --primary: #2563eb;
+  --primary-dark: #1e3a8a;
+  --accent: #38bdf8;
+  --text: #0f172a;
+  --muted: #64748b;
+  --line: #dbeafe;
+  --white: #ffffff;
+  --soft-blue: #eff6ff;
+  --shadow: 0 24px 70px rgba(37, 99, 235, 0.16);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+
+
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.26), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.14), transparent 34%),
+    linear-gradient(135deg, #f8fbff 0%, #edf6ff 100%);
+}
+
+.register-page {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  overflow: hidden;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 24px);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: 18px 34px 20px;
+  box-shadow: var(--shadow);
+}
+
+.logos-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand img {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  object-fit: contain;
+  background: white;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16);
+}
+
+.brand h1 {
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.brand p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.telnet-logo {
+  width: 170px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.badge {
+  display: inline-block;
+  background: var(--soft-blue);
+  color: var(--primary-dark);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+.form-header h2 {
+  font-size: 28px;
+  line-height: 1.1;
+  color: var(--primary-dark);
+  margin-bottom: 5px;
+  letter-spacing: -0.03em;
+}
+
+.form-header p {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.input-group {
+  margin-bottom: 30px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 13px;
+}
+
+.input-box {
+  height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: #f8fbff;
+  transition: 0.2s ease;
+}
+.role-box{
+    position: relative;
+}
+
+.role-box select{
+    flex: 1;
+    border: none !important;
+    outline: none !important;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--text);
+
+    padding-right: 30px;
+    cursor: pointer;
+
+    box-shadow: none !important;
+}
+
+.role-box select::-ms-expand{
+    display: none;
+}
+
+.role-arrow{
+    color: var(--muted);
+    font-size: 13px;
+    margin-right: 4px;
+    pointer-events: none;
+}
+.input-box:focus-within {
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+}
+
+.input-box i {
+  color: var(--primary);
+  width: 18px;
+  text-align: center;
+}
+
+.input-box input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.register-btn {
+  width: 100%;
+  height: 48px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  font-weight: 800;
+  font-size: 16px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 16px 32px rgba(37, 99, 235, 0.28);
+  transition: 0.2s ease;
+}
+
+.register-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 38px rgba(37, 99, 235, 0.34);
+}
+
+.login-text {
+  text-align: center;
+  color: var(--muted);
+  margin-top: 22px;
+  font-size: 14px;
+}
+
+.login-text a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 800;
+}
+
+
+@media (max-width: 560px) {
+  .register-card {
+    padding: 28px 22px 30px;
+    border-radius: 26px;
+  }
+
+  .logos-row {
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .form-header h2 {
+    font-size: 28px;
+  }
+
+  .brand h1 {
+    font-size: 26px;
+  }
+
+  .telnet-logo {
+    width: 120px;
+  }
+}
