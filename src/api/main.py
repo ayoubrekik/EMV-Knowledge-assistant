@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, UploadFile, File, BackgroundTasks
+from fastapi import FastAPI, Request, Depends, HTTPException, UploadFile, File, BackgroundTasks, Form
 import shutil
 from fastapi.responses import HTMLResponse,StreamingResponse
 from fastapi.templating import Jinja2Templates
@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import re
 from sqlalchemy.orm import Session
 from uuid import UUID
-
+from typing import Optional
 from src.core.rag.conversational_rag_service import stream_conversational_rag
 
 from src.core.db.chroma_client import get_chroma_client,get_or_create_emv_collection
@@ -34,7 +34,8 @@ from fastapi import HTTPException
 
 from src.core.db.ingest_chunks import ingest_chunks
 
-
+from src.core.db.database import Base, engine
+from src.core.db.models import *
 
 app = FastAPI(title="RAG API")
 app.include_router(auth_router)
@@ -76,6 +77,7 @@ def health():
 
 @app.on_event("startup")
 def startup_event():
+    Base.metadata.create_all(bind=engine) # Create Postgrestables if they don't exist
     collection = get_or_create_emv_collection()
     print(f"Chroma collection ready: {collection.name} and {collection.metadata}")
 
@@ -390,6 +392,9 @@ def delete_book(
 def upload_document(
     background_tasks: BackgroundTasks,
     pdf_file: UploadFile = File(...),
+    doc_id: Optional[str] = Form(None),
+    doc_version: Optional[str] = Form(None),
+    doc_date: Optional[str] = Form(None),
     current_user: User = Depends(require_admin),
 ):
     if not pdf_file.filename.lower().endswith(".pdf"):
@@ -406,11 +411,33 @@ def upload_document(
 
     metadata = extract_first_page_metadata(saved_path)
 
-    if not metadata.get("doc_id") or not metadata.get("doc_version") or not metadata.get("doc_date"):
-        raise HTTPException(
-            status_code=400,
-            detail="Could not extract document metadata from first page."
-        )
+    if doc_id:
+        metadata["doc_id"] = doc_id.strip()
+
+    if doc_version:
+        metadata["doc_version"] = doc_version.strip()
+
+    if doc_date:
+        metadata["doc_date"] = doc_date.strip()
+
+    missing_fields = []
+
+    if not metadata.get("doc_id"):
+        missing_fields.append("Document ID")
+
+    if not metadata.get("doc_version"):
+        missing_fields.append("Document Version")
+
+    if not metadata.get("doc_date"):
+        missing_fields.append("Document Date")
+
+    if missing_fields:
+        return {
+            "success": False,
+            "status": "missing_metadata",
+            "missing_fields": missing_fields,
+            "message": "Some document metadata could not be extracted automatically."
+        }
 
     if document_exists_in_db(metadata):
         return {
@@ -448,7 +475,7 @@ def upload_document(
     }
     CANCEL_FLAGS[job_id] = False
 
-    background_tasks.add_task(process_uploaded_document, job_id, saved_path)
+    background_tasks.add_task(process_uploaded_document, job_id, saved_path, metadata)
 
     return {
         "success": True,
@@ -456,7 +483,7 @@ def upload_document(
         "message": "Upload started."
     }
 
-def process_uploaded_document(job_id: str, saved_path: Path):
+def process_uploaded_document(job_id: str, saved_path: Path, metadata: dict):
     def update_progress(step: str, progress: int, message: str):
         PROCESSING_STATUS[job_id].update({
             "step": step,
@@ -467,6 +494,7 @@ def process_uploaded_document(job_id: str, saved_path: Path):
     try:
         chunks = run_uploaded_pdf_pipeline(
             saved_path,
+            metadata=metadata,
             progress_callback=update_progress,
             cancel_callback=lambda: CANCEL_FLAGS.get(job_id, False),
         )
