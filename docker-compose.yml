@@ -24,6 +24,7 @@ services:
     depends_on:
       - chroma
       - ollama
+      - postgres
   # EDA + testing (Jupyter)
   notebook:
     build: .
