@@ -141,7 +141,7 @@ def chat_stream(
     print("QUESTION RECEIVED:", req.question)
     print("SESSION RECEIVED:", req.session_id)
     print("USER:", current_user.username, current_user.role)
-    temp = 0.5 if req.regenerate else 0
+    temp = 0.5 if req.regenerate else 0.2
     print("Temprature:", temp)
 
     return StreamingResponse(

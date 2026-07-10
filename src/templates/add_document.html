@@ -35,6 +35,36 @@
 
         <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" required hidden>
 
+        <div class="metadata-box" id="metadataBox" style="display:none;">
+          <div class="metadata-header">
+            <h3>Missing metadata</h3>
+            <p>Please enter the missing document information manually.</p>
+          </div>
+
+          <div class="metadata-grid">
+            <div class="field-group">
+              <label for="doc_id">Document ID</label>
+              <input type="text" id="doc_id" name="doc_id" placeholder="Book F" pattern="^Book\s+[A-Za-z0-9_-]+$"
+                title="Format: Book followed by one word, for example: Book F">
+            </div>
+
+            <div class="field-group">
+              <label for="doc_version">Document version</label>
+              <input type="text" id="doc_version" name="doc_version" placeholder="1.0" pattern="^\d+\.\d+$"
+                title="Format: number.number, for example: 1.0">
+
+            </div>
+
+            <div class="field-group">
+              <label for="doc_date">Document date</label>
+              <input type="text" id="doc_date" name="doc_date" placeholder="January 2024"
+                pattern="^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}$"
+                title="Format: English month followed by year, for example: January 2024">
+
+            </div>
+          </div>
+        </div>
+
         <button class="upload-btn" type="submit" id="uploadBtn">Upload and process</button>
 
         <button class="cancel-btn" type="button" id="cancelBtn" style="display:none;">
@@ -65,6 +95,11 @@
     const cancelBtn = document.getElementById("cancelBtn");
     const dropZone = document.getElementById("dropZone");
     const embedBtn = document.getElementById("embedBtn");
+
+    const metadataBox = document.getElementById("metadataBox");
+    const docIdInput = document.getElementById("doc_id");
+    const docVersionInput = document.getElementById("doc_version");
+    const docDateInput = document.getElementById("doc_date");
 
     let currentChunksPath = null;
     let currentJobId = null;
@@ -208,6 +243,50 @@
       const formData = new FormData();
       formData.append("pdf_file", file);
 
+
+      const docIdRegex = /^Book\s+[A-Za-z0-9_-]+$/;
+      const docVersionRegex = /^\d+\.\d+$/;
+      const docDateRegex = /^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}$/;
+
+      function validateMetadataInputs() {
+        const docId = docIdInput.value.trim();
+        const docVersion = docVersionInput.value.trim();
+        const docDate = docDateInput.value.trim();
+
+        if (!docIdRegex.test(docId)) {
+          showError("Document ID must be like: Book F");
+          return false;
+        }
+
+        if (!docVersionRegex.test(docVersion)) {
+          showError("Document version must be like: 1.0");
+          return false;
+        }
+
+        if (!docDateRegex.test(docDate)) {
+          showError("Document date must be like: January 2024");
+          return false;
+        }
+
+        return true;
+      }
+      if (metadataBox.style.display !== "none") {
+        if (!validateMetadataInputs()) {
+          return;
+        }
+      }
+      if (docIdInput.value.trim()) {
+        formData.append("doc_id", docIdInput.value.trim());
+      }
+
+      if (docVersionInput.value.trim()) {
+        formData.append("doc_version", docVersionInput.value.trim());
+      }
+
+      if (docDateInput.value.trim()) {
+        formData.append("doc_date", docDateInput.value.trim());
+      }
+
       renderStatus({
         step: "Uploading",
         progress: 5,
@@ -236,6 +315,24 @@
       }
 
       const result = await response.json();
+      if (result.status === "missing_metadata") {
+        metadataBox.style.display = "block";
+
+        resultBox.innerHTML = `
+    <div class="error-box">
+      <strong>Missing metadata</strong>
+      <p>Please fill the missing fields and upload again.</p>
+      <p><b>Missing:</b> ${result.missing_fields.join(", ")}</p>
+    </div>
+  `;
+
+        isProcessing = false;
+        uploadBtn.disabled = false;
+        uploadBtn.style.display = "flex";
+        cancelBtn.style.display = "none";
+
+        return;
+      }
       if (result.already_chunked && result.needs_embedding) {
         currentChunksPath = result.chunks_path;
 

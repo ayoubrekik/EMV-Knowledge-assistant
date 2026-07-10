@@ -34,6 +34,12 @@
   <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
 </head>
 
 <body>
@@ -389,21 +395,23 @@
         } else {
           row.className = "message-row";
           row.className = "message-row";
-          row.innerHTML = `
-                 <div class="avatar ai">AI</div>
+         row.innerHTML = `
+    <div class="avatar ai">AI</div>
 
-                    <div class="assistant-container">
-                      <div class="message assistant">${formatResponse(message.content)}</div>
+    <div class="assistant-container">
+        <div class="message assistant"></div>
 
-                      <button class="speak-btn" type="button">
-                        <i class="fa-solid fa-volume-high"></i>
-                      </button>
-                        <button class="regenerate-btn" type="button" style="display:none;">
-                              <i class="fa-solid fa-rotate-right"></i>
-                          </button>
-                    </div>
-                  `;
+        <button class="speak-btn" type="button">
+            <i class="fa-solid fa-volume-high"></i>
+        </button>
 
+        <button class="regenerate-btn" type="button" style="display:none;">
+            <i class="fa-solid fa-rotate-right"></i>
+        </button>
+    </div>
+`;
+const messageElement = row.querySelector(".message.assistant");
+formatResponse(messageElement, message.content);
           chatScroll.appendChild(row);
 
           const speakBtn = row.querySelector(".speak-btn");
@@ -710,7 +718,8 @@
               const token = JSON.parse(data);
               assistantMessage += token;
 
-              assistantBubble.innerHTML = formatResponse(assistantMessage);
+              formatResponse(assistantBubble,assistantMessage);
+              
               chatScroll.scrollTop = chatScroll.scrollHeight;
             }
 
@@ -747,10 +756,23 @@
       }
     }
 
-function formatResponse(text) {
-  if (!text) return "";
+function formatResponse(element, text) {
+    if (!text) {
+        element.innerHTML = "";
+        return;
+    }
 
-  return marked.parse(text);
+    element.innerHTML = marked.parse(text);
+
+    renderMathInElement(element, {
+        delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+        ],
+        throwOnError: false
+    });
 }
 
     function formatSourcesAndMetrics(metadata) {

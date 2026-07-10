@@ -118,6 +118,7 @@ def stream_conversational_rag(db, question: str, session_id: str = "default", us
     router_start = time.perf_counter()
     input_type = classify_input(llm, question, history)
     print(f"Input type classified as: {input_type}")
+    print("Okay Okay, let's see what we can do with this question...")
     #input_type = "tag_lookup_question"
     router_end = time.perf_counter()
 
@@ -167,7 +168,8 @@ def stream_conversational_rag(db, question: str, session_id: str = "default", us
     if input_type in {
         "hex_decode_question",
         "source_lookup",
-        "emv_question",
+        # "emv_question",
+        "document_question",
         "tag_lookup_question",
         "definition_question",
         "comparison_question",
@@ -189,7 +191,8 @@ def stream_conversational_rag(db, question: str, session_id: str = "default", us
         rewrite_time = rewrite_end - rewrite_start
     # Update the topic only for real RAG questions
     if input_type in {
-        "emv_question",
+        # "emv_question",
+        "document_question",
         "hex_decode_question",
         "source_lookup",
         "tag_lookup_question",
@@ -299,8 +302,11 @@ SOURCES:
 
     generation_start = time.perf_counter()
     full_answer = ""
+    
+    if (input_type == "contextual_follow_up"):
+        input_type = "document_question"
 
-    for chunk in stream_answer(llm, context, question, input_type, history):
+    for chunk in stream_answer(llm, context, retrieval_query, input_type, history):
         token = chunk.content or ""
         full_answer += token
         yield sse_event("token", token)

@@ -8,6 +8,8 @@ from src.core.ingestion.extraction.extraction import (
 
 from src.core.ingestion.post_processing.heading_correction import (
     LayoutAwareBlockCorrector,
+    UnnumberedHeadingBlockCorrector,
+    detect_numbered_document,
 )
 
 from src.core.ingestion.post_processing.section_assembler import (
@@ -75,6 +77,7 @@ class ProcessingCancelled(Exception):
 
 def run_uploaded_pdf_pipeline(
     pdf_path: Path,
+    metadata: dict,
     progress_callback=None,
     cancel_callback=None,
 ):
@@ -100,10 +103,10 @@ def run_uploaded_pdf_pipeline(
     raw_data = {
         "text_blocks": [
             {
-                "doc_id": block.doc_id,
-                "doc_version": block.doc_version,
-                "doc_title": block.doc_title,
-                "doc_date": block.doc_date,
+                "doc_id": metadata.get("doc_id"),
+                "doc_version": metadata.get("doc_version"),
+                "doc_title": metadata.get("doc_title") or block.doc_title or pdf_path.stem,
+                "doc_date": metadata.get("doc_date"),
                 "page_num": block.page_number,
                 "type": block.block_type,
                 "text": block.text,
@@ -152,7 +155,15 @@ def run_uploaded_pdf_pipeline(
             )
         )
 
-    corrector = LayoutAwareBlockCorrector()
+    is_numbered = detect_numbered_document(text_blocks)
+
+    if is_numbered:
+        corrector = LayoutAwareBlockCorrector()
+        print("Detected document style: numbered headings")
+    else:
+        corrector = UnnumberedHeadingBlockCorrector()
+        print("Detected document style: unnumbered headings")
+
     corrected_blocks, _ = corrector.correct(text_blocks)
 
     progress("Post-processing done", 55, "Extracted blocks corrected.")

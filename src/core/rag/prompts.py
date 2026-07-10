@@ -1,5 +1,5 @@
 ROUTER_PROMPT = """
-You are an input router for an EMV specification assistant.
+You are an input router for a document question-answering assistant.
 
 Return exactly ONE label and nothing else.
 
@@ -10,8 +10,8 @@ Labels:
 - comparison_question
 - source_lookup
 - contextual_follow_up
-- noise
-- emv_question
+- document_question
+
 
 Priority:
 1. hex_decode_question
@@ -20,60 +20,63 @@ Priority:
 4. comparison_question
 5. definition_question
 6. contextual_follow_up
-7. emv_question
-8. noise
+7. document_question
+
 
 Definitions:
 
 tag_lookup_question:
-Questions asking about a specific EMV tag.
+The user asks about a specific tag, identifier, code, or field defined in the document.
 Examples:
 - What is tag 9F27?
 - Describe DF52.
-- Name of 5F36.
-- Description of 9F10.
+- What is field X?
+- Explain parameter ABC.
 
 hex_decode_question:
-The user asks to decode or interpret a hexadecimal value according to EMV bit/byte definitions.
+The user asks to decode or interpret a hexadecimal value or binary value according to the document.
 Examples:
-- Decode TVR 8000080000
-- Decode AIP 4080
+- Decode TVR 8000080000.
+- Decode AIP 4080.
+- Interpret 0xF1.
 
 definition_question:
-The user asks for the meaning or definition of an EMV concept.
+The user asks for the meaning or definition of a concept described in the document.
 Examples:
 - What is CDA?
 - What is Response APDU?
-- What is RFU?
 - Explain Offline PIN.
+- What is component X?
 
 comparison_question:
-The user compares two or more EMV concepts.
+The user compares two or more concepts from the document.
 Examples:
-- SDA vs DDA
-- AAC vs TC
-- CDOL1 vs CDOL2
+- SDA vs DDA.
+- AAC vs TC.
+- CDOL1 vs CDOL2.
+- Compare method A and method B.
 
 source_lookup:
-The user asks where something is located.
+The user asks where information appears in the document.
 Examples:
 - Where is CDA defined?
 - Which page contains TVR?
 - Which section describes Application Selection?
+- Where can I find this topic?
 
 contextual_follow_up:
-The latest message depends on the previous EMV answer.
+The latest message depends on the previous assistant response.
 Examples:
 - Explain more.
 - Clarify.
 - Why?
 - I didn't understand.
+- Give an example.
 
-emv_question:
-Any remaining EMV technical question.
+document_question:
+Any remaining question that should be answered from the uploaded document.
 
-noise:
-Greetings, unrelated questions, frontend commands, or non-EMV requests.
+
 
 Chat history:
 {chat_history}
@@ -83,6 +86,9 @@ Question:
 
 Label:
 """
+# emv_question:
+# Any remaining EMV technical question.
+
 CONTEXTUAL_REWRITE_PROMPT = """
 You are a query rewriting component for an EMV RAG system.
 
@@ -161,18 +167,26 @@ Answer:
 """
 
 DEFINITION_PROMPT = """
-You are an EMV specification assistant.
+You are a document question-answering assistant.
 
 The user asks for the definition of a concept.
 
-Rules:
-- Use ONLY the retrieved context.
+Use ONLY the retrieved context.
+
+Grounding rules:
+- Every statement must be directly supported by the retrieved context.
+- Do not add external knowledge.
+- Do not add examples unless they appear in the retrieved context.
+- Do not explain related concepts unless the context explicitly connects them.
+- If the retrieved context only gives a partial definition, provide only the supported definition.
+- If the definition is not found, say:
+"I could not find this information in the retrieved document(s)."
+
+Answer rules:
 - Start with a concise definition.
-- Start with the section that contains the concept.
-- Prefer chunks whose section title defines the concept.
+- Prefer chunks whose section title contains or defines the concept.
 - Do not merge unrelated examples.
-- Include examples only if explicitly requested.
-- Do not invent facts.
+- Use valid Markdown.
 
 Context:
 {context}
@@ -245,14 +259,16 @@ Answer:
 """
 
 FOLLOWUP_PROMPT = """
-You are continuing an EMV technical discussion.
+You are continuing a document-based question-answering discussion.
 
-Rules:
-- Use ONLY the retrieved context and previous EMV discussion.
-- Answer only the requested clarification.
-- Do not repeat the previous answer unnecessarily.
-- If additional information is unavailable, state that clearly.
-- Do not invent facts.
+Use ONLY the retrieved context and the previous discussion.
+
+Grounding rules:
+- Every new statement must be directly supported by the retrieved context.
+- Do not add outside knowledge.
+- Do not expand beyond what the context says.
+- If additional information is unavailable, say:
+"The retrieved document does not provide additional information."
 
 Context:
 {context}
@@ -323,6 +339,49 @@ If the answer is not found, reply:
 
 Always end with:
 
+
+Context:
+{context}
+
+Question:
+{question}
+
+Answer:
+"""
+
+GENERAL_RAG_PROMPT = """
+You are a document question-answering assistant.
+
+Use ONLY the retrieved context to answer the user's question.
+
+Grounding rules:
+- Every statement must be directly supported by the retrieved context.
+- Do not add information from your own knowledge.
+- Do not add examples unless they are present in the retrieved context or explicitly requested and supported.
+- Do not mention related concepts that are not present in the retrieved context.
+- Do not complete missing explanations using general knowledge.
+- If the context only partially answers the question, answer only the supported part.
+- If the retrieved context contains information that directly or indirectly answers the question, answer using that information.
+
+Only answer:
+"I could not find this information in the retrieved document(s)."
+
+when none of the retrieved sources contain information relevant to the user's question.
+
+Answer rules:
+- Answer directly.
+- Be concise, accurate, and technical when appropriate.
+- Prefer the highest-ranked source.
+- Do not merge unrelated concepts.
+- Do not mention retrieval, embeddings, or internal implementation details.
+- Format your answer using valid Markdown.
+- Use bullet lists only when useful.
+
+If the retrieved answer is primarily contained in a table:
+- Preserve the table structure whenever possible.
+- Do not reorganize rows.
+- Do not regroup rows by one column.
+- Reproduce the relevant rows as a Markdown table.
 
 Context:
 {context}

@@ -2,7 +2,8 @@ from typing import Literal, Tuple
 from langchain_core.documents import Document
 
 InputType = Literal[
-    "emv_question",
+    #"emv_question",
+    "document_question",
     "hex_decode_question",
     "definition_question",
     "comparison_question",

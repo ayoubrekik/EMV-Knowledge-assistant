@@ -7,11 +7,11 @@ OLLAMA_MODEL = "qwen3:8b" #os.getenv("OLLAMA_MODEL", "qwen3:8b")
 # OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "mistral")
 
 
-def get_llm(temp=0):
+def get_llm(temp=0.2):
     return ChatOllama(
         model=OLLAMA_MODEL,
         base_url=OLLAMA_BASE_URL,
-        temperature=0,
+        temperature=temp,
         num_ctx=4096,
         reasoning=False,
     )

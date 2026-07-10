@@ -4,6 +4,7 @@ from .types import InputType
 from src.core.rag.history import format_history_for_prompt
 
 from src.core.rag.prompts import (
+    GENERAL_RAG_PROMPT,
     EMV_RAG_PROMPT,
     HEX_RAG_PROMPT,
     SOURCE_LOOKUP_PROMPT,
@@ -41,7 +42,7 @@ def stream_answer(llm, context: str, question: str, input_type: str, history: li
     elif input_type == "source_lookup":
         template = SOURCE_LOOKUP_PROMPT
     elif input_type == "contextual_follow_up":
-        template = FOLLOWUP_PROMPT
+        template = GENERAL_RAG_PROMPT
     elif input_type == "tag_lookup_question":
         template = TAG_LOOKUP_PROMPT
     elif input_type == "definition_question":
@@ -49,7 +50,7 @@ def stream_answer(llm, context: str, question: str, input_type: str, history: li
     elif input_type == "comparison_question":
         template = COMPARISON_PROMPT
     else:
-        template = EMV_RAG_PROMPT
+        template = GENERAL_RAG_PROMPT
 
     prompt = ChatPromptTemplate.from_template(template)
 

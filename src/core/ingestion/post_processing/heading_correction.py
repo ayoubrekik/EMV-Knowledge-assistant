@@ -144,3 +144,117 @@ class LayoutAwareBlockCorrector:
             blocks,
             key=lambda b: (b.page_number, -b.bbox.y0, b.bbox.x0),
         )
+
+class UnnumberedHeadingBlockCorrector(LayoutAwareBlockCorrector):
+    """
+    Corrector for documents where headings are not numbered.
+
+    Example:
+    - Why Do People Use Python?
+    - Software quality
+    - Developer productivity
+    - Numbers
+    - Strings
+    """
+
+    def _looks_like_unnumbered_heading(self, block: TextBlock) -> bool:
+        text = block.text.strip()
+        words = text.split()
+
+        if not text:
+            return False
+
+        if block.block_type in {
+            "caption",
+            "table",
+            "table_cell",
+            "page_header",
+            "page_footer",
+            "page_number",
+            "footnote",
+        }:
+            return False
+
+        # Avoid paragraphs
+        if len(words) > 10:
+            return False
+
+        if len(text) > 90:
+            return False
+
+        # Avoid normal sentences
+        if text.endswith((".", ",", ";", ":")):
+            return False
+
+        # Avoid bullet/list items
+        if text.startswith(("•", "-", "*", "–")):
+            return False
+
+        # Avoid code-like lines
+        if text.startswith((">>>", "...")):
+            return False
+
+        # Accept simple title-like blocks
+        return True
+
+    def _validate_headings(
+        self,
+        blocks: list[TextBlock],
+        skip_pages: set[int] | None = None,
+    ) -> list[TextBlock]:
+
+        skip_pages = skip_pages or set()
+
+        for block in blocks:
+            if block.page_number in skip_pages:
+                continue
+
+            text = block.text.strip()
+
+            # Case 1: Docling already detected a heading
+            if block.block_type in self.HEADING_TYPES:
+                if (
+                    self._matches_heading_pattern(text)
+                    or self._looks_like_unnumbered_heading(block)
+                ):
+                    block.block_type = "section_header"
+                else:
+                    block.block_type = "text"
+
+        return blocks
+
+def detect_numbered_document(text_blocks: list[TextBlock]) -> bool:
+    """
+    Detect document style using only Docling's classification.
+
+    True  -> most Docling section_header blocks are numbered
+    False -> most Docling section_header blocks are unnumbered
+    """
+
+    heading_patterns = [
+        r"^\s*(PART|Part|SECTION|Section)\s+[IVXLCDM\d]+\b.*$",
+        r"^\s*\d+(\.\d+)*\s+.+$",
+        r"^\s*(ANNEX|Annex|APPENDIX|Appendix)\s+[A-Z\d]+\b.*$",
+        r"^\s*[A-Z]\d+(\.\d+)*\s+.+$",
+        r"^\s*[A-Z]\s+\d+(\.\d+)*\s+.+$",
+        r"^\s*[A-Z](\.\d+)+\s+.+$",
+    ]
+
+    docling_headings = [
+        block.text.strip()
+        for block in text_blocks
+        if block.block_type == "section_header" and block.text.strip()
+    ]
+
+    if not docling_headings:
+        return False
+
+    numbered_count = sum(
+        1
+        for text in docling_headings
+        if any(re.match(pattern, text) for pattern in heading_patterns)
+    )
+
+    numbered_ratio = numbered_count / len(docling_headings)
+
+    return numbered_ratio >= 0.60
