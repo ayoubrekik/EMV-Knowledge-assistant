@@ -1,44 +1,59 @@
-# AI-Powered Knowledge Assistant (EMV)
-**Field:** E‑Payment Systems (EMV Specifications)  
+# EMVAssist — AI-Powered Knowledge Assistant
 
-An AI-powered **Retrieval-Augmented Generation (RAG)** assistant that centralizes technical knowledge for project teams by aggregating content from **specification documents** (PDF/Word) into a **vector database** for semantic search and high-quality Q&A with **source citations**.
+**Field:** E-Payment Systems (EMV Specifications)
 
+EMVAssist is an AI-powered **Retrieval-Augmented Generation (RAG)** assistant designed to help technical teams search and understand EMV specifications through natural-language questions.
 
-## Key Features
-- **Automated knowledge ingestion** from:
-  - Specification documents (PDF/Word technical specs)
-- **Cleaning + chunking** to improve retrieval accuracy
-- **Embeddings generation** for semantic understanding
-- **Vector database storage** with metadata (source type, URL, date, section/page)
-- **Natural language Q&A** with grounded answers + citations (links to sources)
+It combines document processing, hybrid retrieval, local LLM inference, and source-grounded answers in a secure, containerized environment.
 
+## ✨ Key Features
 
-## Architecture Overview
-The solution is structured into 5 layers:
+- 📄 **EMV Document Management** — Upload, process, and manage EMV specification documents.
+- 🧩 **Section-Based Chunking** — Preserves the structure and context of technical specifications.
+- 🔎 **Hybrid Retrieval** — Combines semantic search and BM25 with RRF and Cross-Encoder reranking.
+- 🤖 **Grounded Q&A** — Generates answers based on retrieved EMV content with source information.
+- 💬 **Conversational Chat** — Persistent conversations with contextual follow-up questions.
+- 🔐 **Authentication & Roles** — Separate user and administrator capabilities.
+- 🎙️ **Voice Interaction** — Speech-to-text and text-to-speech support.
+- 📊 **Retrieval Monitoring** — Stores retrieval information for evaluation and analysis.
+- 🏠 **Local AI Execution** — Uses local embeddings and LLM inference to keep EMV data within the local environment.
 
-1. **Data Sources** (Spec Docs)  
-2. **Ingestion & Processing** (load → clean → chunk → embed)  
-3. **Vector Database** (Knowledge Store)  
-4. **AI / RAG Layer** (retrieve top‑K → prompt LLM → cite sources)  
-5. **User Interface** (API / chat / web UI)
+## 🏗️ Architecture
+
+The solution is organized into five main layers:
+
+1. **Data Sources** — EMV specification documents
+2. **Document Processing** — Extraction, cleaning, section-based chunking, and embeddings
+3. **Knowledge Store** — ChromaDB + PostgreSQL
+4. **RAG Layer** — Hybrid retrieval → reranking → LLM
+5. **User Interface** — Web application with text and voice interaction
 
 ### Query Flow
-```
-User → UI/API
-UI → RAG Engine
-RAG Engine → Vector DB (semantic search)
-Vector DB → Top‑K chunks
-RAG Engine → LLM (question + chunks)
-LLM → Answer + citations
+
+```text
+User → Web UI
+     → FastAPI
+     → Hybrid Retrieval
+     → RRF + Reranking
+     → Top-K Chunks
+     → Local LLM
+     → Grounded Answer + Sources
 ```
 
 ## Tech Stack
-- **Python** (core development)
-- **FastAPI + Uvicorn** (API service)
-- **ChromaDB** (vector database; persisted via volume)
-- **Sentence-Transformers / Embeddings** (local embedding generation)
-- **Ollama** (local LLM runtime)
-- **Docker + Docker Compose** (reproducible local environment)
+- Python
+- FastAPI + Uvicorn
+- HTML / CSS / JavaScript
+- Docling
+- LangChain
+- ChromaDB
+- PostgreSQL
+- Sentence Transformers
+- BM25
+- Cross-Encoder
+- Ollama + Qwen3:8B
+- Faster-Whisper
+- Docker + Docker Compose
 
 
 ## Quickstart
@@ -80,4 +95,8 @@ docker compose up --build
 
 
 ## 🙋 Author
-Internship / project work on an AI Knowledge Assistant for EMV E‑Payment Systems.
+**Ayoub Rekik**
+
+Data Science & Artificial Intelligence Engineering
+
+AI Knowledge Assistant for EMV E-Payment Systems.
